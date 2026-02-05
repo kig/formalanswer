@@ -1,4 +1,4 @@
-# FormalAnswer (formerly FRL)
+# FormalAnswer
 
 ## 1. Mission & Philosophy
 **FormalAnswer** operates as a "System 2" governor for Large Language Models. It operationalizes the **"Neural-Algebraic Mirror"** concept:

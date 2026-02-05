@@ -1,9 +1,9 @@
-# Formal Reasoning Loop (FRL)
+# FormalAnswer
 
 ## 1. Mission & Philosophy
-The **Formal Reasoning Loop (FRL)** operates as a "System 2" governor for Large Language Models. It operationalizes the **"Neural-Algebraic Mirror"** concept:
+**FormalAnswer** operates as a "System 2" governor for Large Language Models. It operationalizes the **"Neural-Algebraic Mirror"** concept:
 - **System 1 (LLM):** Generates high-entropy, intuitive "candidate solutions" (The Proposer).
-- **System 2 (Formal Kernel):** Mechanically verifies these candidates against strict logical and temporal constraints (The Auditor).
+- **System 2 (FormalAnswer Kernel):** Mechanically verifies these candidates against strict logical and temporal constraints (The Auditor).
 
 **Goal:** Transform the LLM from a probabilistic token generator into a verifiable reasoning engine. An output is only accepted if it compiles and passes all formal checks.
 
@@ -36,7 +36,8 @@ We utilize a simplified, high-power stack optimized for the 2026 landscape of au
 The system follows a strict **Agentic Control Loop**:
 
 1.  **The Proposer (`src.proposer`):**
-    *   Interacts with the LLM (Gemini).
+    *   **Multi-Backend Support:** Connects to **Gemini**, **OpenAI**, or **Ollama** (local).
+    *   Interacts with the LLM to generate candidate proofs.
     *   Injects a "Unified Invariant Anchor" prompt, forcing the LLM to define shared constants across natural language, Lean, and TLA+.
     *   Parses the response into code blocks.
 
