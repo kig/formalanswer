@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# System
+.DS_Store
+
+# Output/Logs
+debug/
+states/
+*.log
+
+# Lean/TLA+ Build & Temp
+work/.lake/
+work/lake-packages/
+work/temp*
+work/tla2tools.jar
+work/.elan/
+
+work/jdk/
