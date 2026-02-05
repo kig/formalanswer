@@ -65,7 +65,7 @@ This runs the `tests/` suite, checking code extraction and mock API interactions
 Run a natural language query through the Formal Reasoning Loop:
 
 ```bash
-./query.sh "Why is it a good idea to buy BTC today?"
+./query.sh --model gemini-3-pro-preview "Schedule 3 meetings for 5 people with overlapping 'No-Fly' zones, where Person A cannot be in a room with Person B."
 ```
 
 ### Advanced Usage (Backends)
@@ -86,7 +86,7 @@ export OPENAI_API_KEY=sk-...
 **3. Ollama (Local)**
 ```bash
 # Ensure Ollama is running (ollama serve)
-./query.sh "Question..." --backend ollama --model llama3
+./query.sh "Question..." --backend ollama --model llama3.2:latest
 ```
 
 **Full Options:**
