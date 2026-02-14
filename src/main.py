@@ -302,6 +302,7 @@ class FormalReasoningLoop:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Formal Reasoning Loop")
     parser.add_argument("task", nargs="?", default="How could AI agents use formal methods to produce superhuman thinking?", help="The natural language query/task")
+    parser.add_argument("--prompt-file", help="Load the prompt from a file.")
     parser.add_argument("--backend", default="gemini", choices=["gemini", "openai", "ollama"], help="LLM backend to use")
     parser.add_argument("--model", help="Specific model name (e.g., gpt-4, gemini-2.5-flash, llama3)")
     parser.add_argument("--base-url", help="Base URL for OpenAI/Ollama API")
@@ -309,7 +310,12 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action="store_true", help="Show detailed verification errors in output")
     
     args = parser.parse_args()
-    
+    task = args.task
+
+    if args.prompt_file:
+        with open(args.prompt_file, 'r') as f:
+            task = f.read()
+
     frl = FormalReasoningLoop(
         backend=args.backend,
         model=args.model,
@@ -317,4 +323,4 @@ if __name__ == "__main__":
         base_url=args.base_url,
         verbose=args.verbose
     )
-    frl.run(args.task)
+    frl.run(task)

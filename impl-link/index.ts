@@ -23,12 +23,49 @@ function getJavaBin(formalWorkDir: string) {
   return candidates.find((p) => fs.existsSync(p)) || 'java';
 }
 
+function getLeanBin(formalWorkDir: string) {
+  const candidates = [
+    path.join(formalWorkDir, '.elan', 'bin', process.platform === 'win32' ? 'lean.exe' : 'lean'),
+  ];
+  return candidates.find((p) => fs.existsSync(p)) || 'lean';
+}
+
 /** Locate the FormalAnswer toolchain (the `work/` folder inside the FormalAnswer repo). */
 export function findFormalWork(formalanswerRoot: string): FormalWork | null {
   const formalWorkDir = path.join(formalanswerRoot, 'work');
   const tla2toolsJar = path.join(formalWorkDir, 'tla2tools.jar');
   if (!fs.existsSync(tla2toolsJar)) return null;
-  return { formalWorkDir, tla2toolsJar, javaBin: getJavaBin(formalWorkDir) };
+  return { 
+    formalWorkDir, 
+    tla2toolsJar, 
+    javaBin: getJavaBin(formalWorkDir),
+    leanBin: getLeanBin(formalWorkDir)
+  };
+}
+
+export type FormalWork = {
+  formalWorkDir: string;
+  tla2toolsJar: string;
+  javaBin: string;
+  leanBin: string;
+};
+
+export function runLean(
+  formalWork: FormalWork,
+  opts: { leanFile: string; cwd?: string; args?: string[] }
+): { stdout: string; stderr: string; status: number } {
+  const args = opts.args || [];
+  args.push(opts.leanFile);
+
+  const res = spawnSync(formalWork.leanBin, args, {
+    cwd: opts.cwd || formalWork.formalWorkDir,
+    encoding: 'utf8',
+  });
+  return { 
+    stdout: String(res.stdout || ''), 
+    stderr: String(res.stderr || ''),
+    status: res.status ?? 0
+  };
 }
 
 export function runTlc(

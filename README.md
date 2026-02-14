@@ -95,6 +95,12 @@ export OPENAI_API_KEY=sk-...
 *   `--base-url`: Custom API endpoint (e.g., for vLLM or custom Ollama port).
 *   `--api-key`: Override API key from CLI.
 
+## Verification Ecosystem
+
+For more details on the tools and languages that integrate best with FormalAnswer, see:
+*   [Programming Languages for Formal Verification](docs/verification_languages.md): A guide to selecting implementation languages and linking them to formal specs.
+*   [Verified Refinement Guidelines](docs/refined_logic_guidelines.md): Generic best practices for linking formal logic to actual implementations.
+
 ## Architecture
 
 1.  **Proposer (LLM):** Generates a Rationale, TLA+ Spec, and Lean 4 Proof.
