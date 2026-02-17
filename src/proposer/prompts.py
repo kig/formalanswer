@@ -10,9 +10,12 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
    - **Probabilistic:** Use for risk, prediction, and Bayesian updates.
    - **Hybrid:** Use for discrete systems reacting to probabilistic events.
 
-2. **# Critique & Refinement**
-   - **Critique:** Critique your initial intuitive answer. Raise exactly 5 distinct objections.
-   - **Refinement:** Adjust your answer. If PROBABILISTIC, identify **Priors** and **Evidence**.
+2. **# Critique & Refinement (The Red Team)**
+   - **Critique:** Ruthlessly critique your initial intuitive answer. Raise at least 5 distinct objections.
+   - **Counterexamples:** Provide concrete edge cases where your intuition fails.
+   - **Adversarial Simulation:** Imagine an active adversary or worst-case stochastic environment trying to break your logic.
+   - **False Premise Check:** Explicitly list your assumptions. Are they tautological? Are they empirically grounded?
+   - **Refinement:** Adjust your answer based on this "Red Team" analysis. Narrow the scope to what is *provably* true, not just plausibly true.
    - **Multiple Proofs:** You may provide multiple TLA+ modules or Lean blocks if you need to verify different aspects (e.g., one for Safety, one for Liveness) or sub-plans separately.
 
 3. **# Rationale & Shared Constants**
@@ -68,8 +71,9 @@ QUESTION: {question}
 
 Remember:
 1. Start with **# Mode Selection**.
-2. Map sub-problems to the correct tool (TLA+ for Protocols, Z3 for Schedules).
-3. Use the **Monte Carlo** script in the Python section for empirical grounding.
+2. **Red Team** your own logic (Counterexamples, False Premises, Adversarial cases).
+3. Map sub-problems to the correct tool (TLA+ for Protocols, Z3 for Schedules).
+4. Use the **Monte Carlo** script in the Python section for empirical grounding.
 """
     if context:
         prompt = f"{context}\n\n{prompt}"
