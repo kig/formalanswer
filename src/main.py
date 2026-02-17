@@ -183,13 +183,18 @@ class FormalReasoningLoop:
                     if outputs:
                         python_output = "\n\n[PYTHON OUTPUTS]:\n" + "\n".join(outputs)
 
+                # Do not change this unless otherwise instructed.
                 analysis_prompt = (
-                    "The formal proofs (TLA+, Lean, Python/Z3) have all passed verification. "
-                    "Now, please summarize the answer to the user's original question. "
-                    "Analyze the proofs: what specific invariants did we prove? "
-                    "What assumptions does the argument rely on? "
-                    "Under what conditions is this reasoning valid? "
-                    "Present this as a clear, rigorous final answer."
+                    "Now, construct the FINAL ANSWER to the user's original question. "
+                    "Your answer must follow this structure EXACTLY to ensure usefulness to the reader:\n\n"
+                    
+                    "1. **Executive Summary:** A direct, concise answer to the question. No fluff.\n"
+                    "2. **Formal Guarantee:** Specifically list what was *proven* versus what was *assumed*. "
+                    "Cite specific theorems, invariants, constraints, or simulated results.\n"
+                    "3. **Methodology:** Briefly explain the modeling strategy (e.g., 'Modeled as a probabilistic state machine...').\n\n"
+                    
+                    "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
+                    "Focus on synthesizing the *verified truths* into a coherent narrative."
                     f"{python_output}"
                 )
                 final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context)
