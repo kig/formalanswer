@@ -213,7 +213,7 @@ class FormalReasoningLoop:
                     
                     "1. **Executive Summary:** A direct, concise answer to the question. No fluff.\n"
                     "2. **Formal Guarantee:** Specifically list what was *proven* versus what was *assumed*. "
-                    "Cite specific theorems (Lean), invariants (TLA+), or empirical results (Python).\n"
+                    "Cite specific theorems, invariants, constraints, or simulated results.\n"
                     "3. **Methodology:** Briefly explain the modeling strategy (e.g., 'Modeled as a probabilistic state machine...').\n\n"
                     
                     "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
