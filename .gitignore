@@ -16,6 +16,7 @@ states/
 # User
 .env
 .vscode/
+env_wrapper.sh
 
 # Build
 .lake/
