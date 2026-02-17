@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "formal-answer": {
+      "command": "uv",
+      "args": [
+        "run",
+        "src/mcp_server.py"
+      ],
+      "env": {
+        "GOOGLE_API_KEY": "your_key_here"
+      }
+    }
+  }
+}

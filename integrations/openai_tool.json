@@ -1,0 +1,25 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "formal_verify",
+        "description": "Verifies complex logic, distributed systems, or critical safety invariants using Formal Methods (Lean 4, TLA+, JAX). Use this tool when the user asks for high-assurance designs, safety proofs, or risk assessments.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "The natural language description of the system, logic, or theorem to verify."
+            },
+            "model": {
+              "type": "string",
+              "description": "The underlying LLM to use for reasoning (default: gemini-2.5-flash)."
+            }
+          },
+          "required": ["query"]
+        }
+      }
+    }
+  ]
+}
