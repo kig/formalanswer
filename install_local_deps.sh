@@ -11,8 +11,35 @@ if [ -d "$JAVA_DIR" ]; then
     echo "Local JDK seems to be present at $JAVA_DIR"
 else
     echo "Downloading OpenJDK..."
-    # URL for OpenJDK 21 (LTS) for macOS ARM64 (Eclipse Temurin)
-    JDK_URL="https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2%2B13/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.2_13.tar.gz"
+    
+    # Detect Platform
+    OS=$(uname -s)
+    ARCH=$(uname -m)
+    
+    BASE_URL="https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2%2B13"
+    
+    if [ "$OS" == "Darwin" ]; then
+        if [ "$ARCH" == "arm64" ]; then
+            JDK_URL="$BASE_URL/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.2_13.tar.gz"
+        elif [ "$ARCH" == "x86_64" ]; then
+            JDK_URL="$BASE_URL/OpenJDK21U-jdk_x64_mac_hotspot_21.0.2_13.tar.gz"
+        else
+            echo "Unsupported macOS architecture: $ARCH"
+            exit 1
+        fi
+    elif [ "$OS" == "Linux" ]; then
+        if [ "$ARCH" == "aarch64" ]; then
+            JDK_URL="$BASE_URL/OpenJDK21U-jdk_aarch64_linux_hotspot_21.0.2_13.tar.gz"
+        elif [ "$ARCH" == "x86_64" ]; then
+            JDK_URL="$BASE_URL/OpenJDK21U-jdk_x64_linux_hotspot_21.0.2_13.tar.gz"
+        else
+            echo "Unsupported Linux architecture: $ARCH"
+            exit 1
+        fi
+    else
+        echo "Unsupported OS: $OS"
+        exit 1
+    fi
     
     echo "Downloading OpenJDK from $JDK_URL..."
     curl -L -o "$WORK_DIR/openjdk.tar.gz" "$JDK_URL"
