@@ -210,7 +210,7 @@ class FormalReasoningLoop:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Formal Reasoning Loop")
-    parser.add_argument("task", nargs="?", default="How could AI agents use formal methods to produce superhuman thinking?", help="The natural language query/task")
+    parser.add_argument("task", nargs="*", help="The natural language query/task (can be multiple strings)")
     parser.add_argument("--prompt-file", help="Load the prompt from a file.")
     parser.add_argument("--backend", default="gemini", choices=["gemini", "openai", "ollama"], help="LLM backend to use")
     parser.add_argument("--model", help="Specific model name (e.g., gpt-4, gemini-2.5-flash, llama3)")
@@ -219,11 +219,20 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action="store_true", help="Show detailed verification errors in output")
     
     args = parser.parse_args()
-    task = args.task
-
+    
+    task_parts = []
+    
     if args.prompt_file:
         with open(args.prompt_file, 'r') as f:
-            task = f.read()
+            task_parts.append(f.read())
+            
+    if args.task:
+        task_parts.append(" ".join(args.task))
+        
+    if not task_parts:
+        task = "How could AI agents use formal methods to produce superhuman thinking?"
+    else:
+        task = "\n\n".join(task_parts)
 
     frl = FormalReasoningLoop(
         backend=args.backend,
