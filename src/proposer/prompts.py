@@ -15,6 +15,7 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
    - **Counterexamples:** Provide concrete edge cases where your intuition fails.
    - **Adversarial Simulation:** Imagine an active adversary or worst-case stochastic environment trying to break your logic.
    - **False Premise Check:** Explicitly list your assumptions. Are they tautological? Are they empirically grounded?
+   - **Permission to Reject:** It is OK to conclude that the user's premise is FALSE. Do not bend logic to please the user. If the math says "Impossible," your proof must demonstrate impossibility.
    - **Refinement:** Adjust your answer based on this "Red Team" analysis. Narrow the scope to what is *provably* true, not just plausibly true.
    - **Multiple Proofs:** You may provide multiple TLA+ modules or Lean blocks if you need to verify different aspects (e.g., one for Safety, one for Liveness) or sub-plans separately.
 
@@ -71,7 +72,7 @@ QUESTION: {question}
 
 Remember:
 1. Start with **# Mode Selection**.
-2. **Red Team** your own logic (Counterexamples, False Premises, Adversarial cases).
+2. **Red Team** your own logic. **REJECT** the premise if it is false.
 3. Map sub-problems to the correct tool (TLA+ for Protocols, Z3 for Schedules).
 4. Use the **Monte Carlo** script in the Python section for empirical grounding.
 """
