@@ -144,11 +144,26 @@ class FormalReasoningLoop:
                     for idx, res in enumerate(res_list):
                         f.write(f"Block {idx+1}:\n{str(res)}\n\n")
 
+            # --- PREPARE FEEDBACK ---
+            # We build the feedback string here, incorporating both verification errors and combat critique.
+            
+            feedback_parts = []
+            
+            # 1. Verification Errors
+            if not all_pass:
+                feedback_parts.append(f"The following verifiers failed: {', '.join([t.upper() for t in failing_tools])}.")
+                for tool in failing_tools:
+                    res_list = results.get(tool, [])
+                    for idx, res in enumerate(res_list):
+                        if not res.success:
+                            feedback_parts.append(f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n")
+                feedback_parts.append(f"Please fix the issues in the failing components ({', '.join(failing_tools)}).")
+
             # --- COMBAT MODE ---
-            if all_pass and self.combat:
+            # Run critique if enabled, regardless of verification status (unless prose is missing)
+            if self.combat and current_blocks.get("prose"):
                 print("\n[COMBAT MODE] Initiating Adversarial Review...")
                 
-                # Extract the argument to critique
                 proof_text = current_blocks.get("prose", "")
                 
                 # 1. The Red Team Attack
@@ -162,12 +177,20 @@ class FormalReasoningLoop:
                 print(f"  Score: {score}/1.0")
                 
                 if score < 0.7:
-                    print("  [COMBAT RESULT] Argument Destroyed. Feedback loop triggered.")
-                    feedback = f"Your formal proofs passed, but your reasoning failed an adversarial review.\n\nREVIEWER OBJECTION:\n{objection}\n\nPlease refine your argument and proofs to address this."
-                    all_pass = False
-                    # We do NOT save proof set yet
+                    print("  [COMBAT RESULT] Argument Destroyed.")
+                    all_pass = False # Even if verified, if argument is weak, we iterate.
+                    combat_feedback = f"REVIEWER OBJECTION:\n{objection}\n\nYour reasoning was found to be weak (Score: {score}). Please address this objection."
+                    feedback_parts.append(combat_feedback)
                 else:
                     print("  [COMBAT RESULT] Argument Survived.")
+                    # Optional: We could pass the critique as "Warnings" even if it survived?
+                    # For now, only block success if score is low.
+
+            # Join feedback
+            if feedback_parts:
+                feedback = "\n\n".join(feedback_parts)
+            else:
+                feedback = None
 
             # --- Success Handler ---
             if all_pass:
@@ -183,18 +206,13 @@ class FormalReasoningLoop:
                     if outputs:
                         python_output = "\n\n[PYTHON OUTPUTS]:\n" + "\n".join(outputs)
 
-                # Do not change this unless otherwise instructed.
                 analysis_prompt = (
-                    "Now, construct the FINAL ANSWER to the user's original question. "
-                    "Your answer must follow this structure EXACTLY to ensure usefulness to the reader:\n\n"
-                    
-                    "1. **Executive Summary:** A direct, concise answer to the question. No fluff.\n"
-                    "2. **Formal Guarantee:** Specifically list what was *proven* versus what was *assumed*. "
-                    "Cite specific theorems, invariants, constraints, or simulated results.\n"
-                    "3. **Methodology:** Briefly explain the modeling strategy (e.g., 'Modeled as a probabilistic state machine...').\n\n"
-                    
-                    "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
-                    "Focus on synthesizing the *verified truths* into a coherent narrative."
+                    "The formal proofs (TLA+, Lean, Python/Z3) have all passed verification. "
+                    "Now, please summarize the answer to the user's original question. "
+                    "Analyze the proofs: what specific invariants did we prove? "
+                    "What assumptions does the argument rely on? "
+                    "Under what conditions is this reasoning valid? "
+                    "Present this as a clear, rigorous final answer."
                     f"{python_output}"
                 )
                 final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context)
@@ -213,17 +231,7 @@ class FormalReasoningLoop:
                 print("\n============================================")
                 return True, final_analysis
             
-            # --- Feedback ---
-            if not feedback: # If feedback wasn't already set by Combat Mode
-                feedback = f"The following verifiers failed: {', '.join([t.upper() for t in failing_tools])}.\n"
-                for tool in failing_tools:
-                    res_list = results.get(tool, [])
-                    for idx, res in enumerate(res_list):
-                        if not res.success:
-                            feedback += f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n"
-                
-                feedback += f"\nPlease fix the issues in the failing components ({', '.join(failing_tools)})."
-            
+            # Retry
             print("\n[RETRY] Sending feedback to LLM...")
 
         print("\n[FAILURE] Max iterations reached.")
