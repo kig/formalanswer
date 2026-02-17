@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import string
 from src.library.indexer import index_modules, INDEX_FILE, DEFAULT_MODULES_DIR
 from src.utils.interface_extractor import extract_lean_interface, extract_tla_interface
 
@@ -32,13 +33,8 @@ class Retriever:
         context_blocks.append("-" * 50)
 
         for mod in selected_modules:
-            # Check if file exists (relative to project root?)
-            # The index contains 'path' which is relative to execution root if run from main
             path = mod['path']
             if not os.path.exists(path):
-                # Try relative to modules_dir if path is just filename (legacy index?)
-                # But indexer stores full path relative to execution root.
-                # If index was created in a test, path might be invalid.
                 continue
 
             with open(path, "r") as f:
@@ -63,21 +59,27 @@ class Retriever:
         """
         Simple keyword-based selection.
         """
-        query_lower = query.lower()
+        # Normalize and strip punctuation
+        translator = str.maketrans('', '', string.punctuation)
+        query_clean = query.lower().translate(translator)
+        query_words = set(query_clean.split())
+        
+        # Common stop words
+        common = {'the', 'a', 'an', 'of', 'for', 'in', 'on', 'to', 'and', 'is', 'using', 'with'}
+        query_words -= common
+        
         selected = []
         
         for mod in self.index:
             # Check ID (e.g., "Math" in query)
             mod_id_parts = mod['id'].lower().split('.')
-            if any(part in query_lower for part in mod_id_parts):
+            if any(part in query_clean for part in mod_id_parts):
                 selected.append(mod)
                 continue
             
-            # Check description words (simple set intersection)
-            # Filter out common words like 'the', 'a'
-            common = {'the', 'a', 'an', 'of', 'for', 'in', 'on', 'to'}
-            desc_words = set(mod['description'].lower().split()) - common
-            query_words = set(query_lower.split()) - common
+            # Check description words
+            desc_clean = mod['description'].lower().translate(translator)
+            desc_words = set(desc_clean.split()) - common
             
             if desc_words & query_words:
                 selected.append(mod)
