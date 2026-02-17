@@ -27,6 +27,7 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
      - **TLA+:** For state machines, protocols, concurrency, and temporal safety.
      - **Lean 4:** For static logic, data structure invariants, and mathematical bounds.
      - **Python/Z3/JAX:** For scheduling, optimization, simulations, and empirical grounding.
+   - **For Factual/Historical Queries:** Do not try to prove history with physics. Instead, model the *logical definitions* (e.g., `∀ c, IsCapital(c) → HasGovernmentSeat(c)`) and prove consistency.
 
 4. **# TLA+ Specification (The Safety Inspector)**
    - Model *protocols* or *state transitions*.
@@ -44,6 +45,7 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
 
 5. **# Lean 4 Proof (The Universal Verifier)**
    - Prove *logical* or *arithmetic* properties.
+   - **MANDATORY:** Do NOT use placeholders (`sorry`). If a full proof is impossible, prove a simplified but rigorous lemma.
    - **Reference:**
    ```lean
    import Mathlib
@@ -53,6 +55,7 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
 
 6. **# Z3/Python Script (The Empirical Grounding)**
    - Use this for **Scheduling**, **Optimization**, or **Monte Carlo**.
+   - **OPTIONAL:** If the query is purely logical/abstract and requires no empirical simulation, you may omit this section or write a script that simply validates the consistency of your Shared Constants.
    - **RECOMMENDATION:** Use **JAX** or **NumPyro** for simulations, **Z3** for constraints.
    - **Reference:**
    ```python
