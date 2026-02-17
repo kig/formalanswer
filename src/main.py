@@ -49,9 +49,6 @@ class FormalReasoningLoop:
             response = self.proposer.propose(task, feedback, context=context)
             last_response = response
             
-            # Save raw response immediately
-            self.library.save_raw_response(task_dir, i + 1, response)
-            
             # Keep existing debug logging for backward compatibility
             with open(f"debug/iteration_{i+1}_raw.txt", "w") as f:
                 f.write(response)
@@ -75,8 +72,7 @@ class FormalReasoningLoop:
             # --- Verification Helper ---
             def verify_blocks(kind, blocks, verifier_func):
                 if not blocks:
-                    return True # Nothing to verify is a "pass" if not required? 
-                    # But prompt requires them. Logic below handles missing blocks.
+                    return True 
                 
                 # Check if identical to best
                 if blocks == self.best_blocks[kind]:
@@ -144,10 +140,9 @@ class FormalReasoningLoop:
                     for idx, res in enumerate(res_list):
                         f.write(f"Block {idx+1}:\n{str(res)}\n\n")
 
-            # --- PREPARE FEEDBACK ---
-            # We build the feedback string here, incorporating both verification errors and combat critique.
-            
+            # --- PREPARE FEEDBACK & LOGGING ---
             feedback_parts = []
+            combat_log = ""
             
             # 1. Verification Errors
             if not all_pass:
@@ -160,7 +155,6 @@ class FormalReasoningLoop:
                 feedback_parts.append(f"Please fix the issues in the failing components ({', '.join(failing_tools)}).")
 
             # --- COMBAT MODE ---
-            # Run critique if enabled, regardless of verification status (unless prose is missing)
             if self.combat and current_blocks.get("prose"):
                 print("\n[COMBAT MODE] Initiating Adversarial Review...")
                 
@@ -176,21 +170,28 @@ class FormalReasoningLoop:
                 score = self.proposer.judge(proof_text, objection)
                 print(f"  Score: {score}/1.0")
                 
+                # Format log
+                combat_log = f"\n\n=== COMBAT MODE REPORT ===\nOBJECTION:\n{objection}\n\nSCORE: {score}/1.0\n"
+                
                 if score < 0.7:
                     print("  [COMBAT RESULT] Argument Destroyed.")
-                    all_pass = False # Even if verified, if argument is weak, we iterate.
+                    all_pass = False 
+                    combat_log += "RESULT: FAILED (Feedback Triggered)\n"
                     combat_feedback = f"REVIEWER OBJECTION:\n{objection}\n\nYour reasoning was found to be weak (Score: {score}). Please address this objection."
                     feedback_parts.append(combat_feedback)
                 else:
                     print("  [COMBAT RESULT] Argument Survived.")
-                    # Optional: We could pass the critique as "Warnings" even if it survived?
-                    # For now, only block success if score is low.
+                    combat_log += "RESULT: PASSED\n"
 
             # Join feedback
             if feedback_parts:
                 feedback = "\n\n".join(feedback_parts)
             else:
                 feedback = None
+
+            # Save raw response WITH combat log
+            full_log = response + combat_log
+            self.library.save_raw_response(task_dir, i + 1, full_log)
 
             # --- Success Handler ---
             if all_pass:
@@ -213,7 +214,7 @@ class FormalReasoningLoop:
                     
                     "1. **Executive Summary:** A direct, concise answer to the question. No fluff.\n"
                     "2. **Formal Guarantee:** Specifically list what was *proven* versus what was *assumed*. "
-                    "Cite specific theorems, invariants, constraints, or simulated results.\n"
+                    "Cite specific theorems (Lean), invariants (TLA+), or empirical results (Python).\n"
                     "3. **Methodology:** Briefly explain the modeling strategy (e.g., 'Modeled as a probabilistic state machine...').\n\n"
                     
                     "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
