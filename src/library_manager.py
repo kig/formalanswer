@@ -26,6 +26,15 @@ class LibraryManager:
             
         return target_dir
 
+    def save_prompt(self, task_dir, prompt_content):
+        """
+        Saves the original prompt to the task directory.
+        """
+        path = os.path.join(task_dir, "prompt.txt")
+        with open(path, "w") as f:
+            f.write(prompt_content)
+        return path
+
     def save_raw_response(self, task_dir, iteration_idx, response, label=None):
         """
         Saves a raw LLM response to the task directory.
@@ -39,6 +48,23 @@ class LibraryManager:
         with open(path, "w") as f:
             f.write(response)
         return path
+
+    def save_candidate_proofs(self, task_dir, blocks):
+        """
+        Saves the current candidate proofs to the task directory (overwriting previous candidates).
+        Useful for debugging if the process fails.
+        """
+        if blocks.get("tla"):
+            with open(os.path.join(task_dir, "proof_candidate.tla"), "w") as f:
+                f.write(blocks["tla"])
+
+        if blocks.get("python"):
+            with open(os.path.join(task_dir, "proof_candidate.py"), "w") as f:
+                f.write(blocks["python"])
+
+        if blocks.get("lean"):
+            with open(os.path.join(task_dir, "proof_candidate.lean"), "w") as f:
+                f.write(blocks["lean"])
 
     def save_proofs(self, task_dir, blocks, original_prompt=None):
         """
@@ -72,10 +98,7 @@ class LibraryManager:
             saved_files.append(path)
             
         if original_prompt:
-            path = os.path.join(task_dir, "prompt.txt")
-            with open(path, "w") as f:
-                f.write(original_prompt)
-            saved_files.append(path)
+            self.save_prompt(task_dir, original_prompt)
 
         print(f"\n[LIBRARY] Saved successful proofs to {task_dir}/")
         return saved_files

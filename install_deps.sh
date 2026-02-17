@@ -58,7 +58,7 @@ if command_exists python3; then
     python3 -m venv venv
     ./venv/bin/pip install --upgrade pip
     echo "Installing Python packages..."
-    ./venv/bin/pip install google-genai python-dotenv openai jax jaxlib pytest mcp fastapi uvicorn "z3-solver==4.13.3.0"
+    ./venv/bin/pip install google-genai python-dotenv openai jax jaxlib pytest mcp fastapi uvicorn "z3-solver==4.13.3.0" pyyaml
 else
     echo "python3 not found. Please install Python 3.10+."
     exit 1

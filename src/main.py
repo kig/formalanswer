@@ -28,6 +28,9 @@ class FormalReasoningLoop:
         task_dir = self.library.init_task_dir(task)
         print(f"[SESSION] Initialized task directory: {task_dir}")
         
+        # Save prompt immediately
+        self.library.save_prompt(task_dir, task)
+        
         # --- Context Retrieval ---
         print("\n[RETRIEVER] Searching for relevant formal modules...")
         context = self.retriever.retrieve(task)
@@ -54,6 +57,9 @@ class FormalReasoningLoop:
                 f.write(response)
             
             current_blocks = self.proposer.extract_code(response)
+            
+            # Save candidate proofs
+            self.library.save_candidate_proofs(task_dir, current_blocks)
             
             # --- Stateful Memory & Completeness Check ---
             for kind in ["tla", "lean", "python"]:
@@ -122,6 +128,11 @@ class FormalReasoningLoop:
                     results["python"] = res
                     if res.success:
                         print(f"✓ Passed")
+                        # Print stdout for the user to see optimization results
+                        if res.details:
+                            print("--- Output ---")
+                            print(res.details)
+                            print("--------------")
                         self.best_blocks["python"] = current_blocks["python"]
                     else:
                         print(f"✗ Failed: {res.message}")
@@ -143,6 +154,12 @@ class FormalReasoningLoop:
                 
                 # --- Final Analysis Step ---
                 print("\nGenerating Verified Prose Answer...")
+                
+                # Collect Python output if available
+                python_output = ""
+                if results.get("python") and results["python"].success:
+                    python_output = f"\n\n[PYTHON SIMULATION/OPTIMIZATION OUTPUT]:\n{results['python'].details}"
+
                 analysis_prompt = (
                     "The formal proofs (TLA+, Lean, Python/Z3) have all passed verification. "
                     "Now, construct the FINAL ANSWER to the user's original question. "
@@ -155,6 +172,7 @@ class FormalReasoningLoop:
                     
                     "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
                     "Focus on synthesizing the *verified truths* into a coherent narrative."
+                    f"{python_output}"
                 )
                 final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context)
                 
