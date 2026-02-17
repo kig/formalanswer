@@ -47,10 +47,11 @@ if __name__ == "__main__":
         # 1. Extract the code
         blocks = self.proposer.extract_code(mock_response)
         self.assertIsNotNone(blocks["python"])
+        self.assertIsInstance(blocks["python"], list)
 
         # 2. Execute the script using the verifier
-        # This will now fail if jax is not installed in the subprocess environment
-        result = verify_python(blocks["python"])
+        # Pass the first block (index 0)
+        result = verify_python(blocks["python"][0])
         
         self.assertTrue(result.success, f"JAX script execution failed: {result.message}\\nDetails: {result.details}")
         self.assertIn("Simulation Mean:", result.details)

@@ -40,12 +40,22 @@ s = Solver()
 ```
 """
         blocks = self.proposer.extract_code(response)
+        
+        # TLA Check
         self.assertIsNotNone(blocks["tla"])
-        self.assertIn("MODULE temp", blocks["tla"])
+        self.assertIsInstance(blocks["tla"], list)
+        self.assertEqual(len(blocks["tla"]), 1)
+        self.assertIn("MODULE temp", blocks["tla"][0])
+        
+        # Lean Check
         self.assertIsNotNone(blocks["lean"])
-        self.assertIn("import Mathlib", blocks["lean"])
+        self.assertIsInstance(blocks["lean"], list)
+        self.assertIn("import Mathlib", blocks["lean"][0])
+        
+        # Python Check
         self.assertIsNotNone(blocks["python"])
-        self.assertIn("from z3 import *", blocks["python"])
+        self.assertIsInstance(blocks["python"], list)
+        self.assertIn("from z3 import *", blocks["python"][0])
         
         # Verify prose
         self.assertIn("# Rationale", blocks["prose"])
@@ -53,6 +63,24 @@ s = Solver()
         self.assertNotIn("```lean", blocks["prose"])
         self.assertNotIn("```python", blocks["prose"])
         self.assertNotIn("EXTENDS Naturals", blocks["prose"])
+
+    def test_extract_code_multiple(self):
+        """Test extraction of MULTIPLE code blocks."""
+        response = """
+# Plan A
+```tla
+MODULE A
+```
+# Plan B
+```tla
+MODULE B
+```
+"""
+        blocks = self.proposer.extract_code(response)
+        self.assertIsNotNone(blocks["tla"])
+        self.assertEqual(len(blocks["tla"]), 2)
+        self.assertIn("MODULE A", blocks["tla"][0])
+        self.assertIn("MODULE B", blocks["tla"][1])
 
     def test_extract_code_broken(self):
         """Test extraction when code blocks are malformed or missing."""
@@ -69,8 +97,8 @@ example : 1=1
         blocks = self.proposer.extract_code(response)
         # TLA should be extracted (regex handles simple cases)
         self.assertIsNotNone(blocks["tla"])
-        # Lean might fail if regex expects closing ticks, let's verify behavior
-        # The current regex ````lean\s*\n?(.*?)\n?\s*``` ` expects closing ticks.
+        self.assertEqual(len(blocks["tla"]), 1)
+        # Lean might fail if regex expects closing ticks
         self.assertIsNone(blocks["lean"])
         self.assertIsNone(blocks["python"])
 

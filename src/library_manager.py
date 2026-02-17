@@ -51,45 +51,17 @@ class LibraryManager:
 
     def save_candidate_proofs(self, task_dir, blocks):
         """
-        Saves the current candidate proofs to the task directory (overwriting previous candidates).
-        Useful for debugging if the process fails.
+        Saves the current candidate proofs to the task directory.
+        Handles lists of blocks.
         """
-        if blocks.get("tla"):
-            with open(os.path.join(task_dir, "proof_candidate.tla"), "w") as f:
-                f.write(blocks["tla"])
-
-        if blocks.get("python"):
-            with open(os.path.join(task_dir, "proof_candidate.py"), "w") as f:
-                f.write(blocks["python"])
-
-        if blocks.get("lean"):
-            with open(os.path.join(task_dir, "proof_candidate.lean"), "w") as f:
-                f.write(blocks["lean"])
+        self._save_blocks(task_dir, blocks, prefix="proof_candidate")
 
     def save_proofs(self, task_dir, blocks, original_prompt=None):
         """
         Saves the successful proofs to the task directory.
         Optionally saves the original prompt.
         """
-        saved_files = []
-
-        if blocks.get("tla"):
-            path = os.path.join(task_dir, "proof.tla")
-            with open(path, "w") as f:
-                f.write(blocks["tla"])
-            saved_files.append(path)
-
-        if blocks.get("python"):
-            path = os.path.join(task_dir, "proof.py")
-            with open(path, "w") as f:
-                f.write(blocks["python"])
-            saved_files.append(path)
-
-        if blocks.get("lean"):
-            path = os.path.join(task_dir, "proof.lean")
-            with open(path, "w") as f:
-                f.write(blocks["lean"])
-            saved_files.append(path)
+        saved_files = self._save_blocks(task_dir, blocks, prefix="proof")
 
         if blocks.get("prose"):
             path = os.path.join(task_dir, "proof.txt")
@@ -102,3 +74,31 @@ class LibraryManager:
 
         print(f"\n[LIBRARY] Saved successful proofs to {task_dir}/")
         return saved_files
+
+    def _save_blocks(self, task_dir, blocks, prefix="proof"):
+        """
+        Helper to save code blocks (which can be lists).
+        """
+        saved = []
+        
+        for lang, ext in [("tla", "tla"), ("python", "py"), ("lean", "lean")]:
+            content_list = blocks.get(lang)
+            if not content_list:
+                continue
+                
+            # Ensure it's a list
+            if isinstance(content_list, str):
+                content_list = [content_list]
+                
+            for i, content in enumerate(content_list):
+                # If only one block, use standard name. If multiple, use index.
+                if len(content_list) == 1:
+                    filename = f"{prefix}.{ext}"
+                else:
+                    filename = f"{prefix}_{i}.{ext}"
+                    
+                path = os.path.join(task_dir, filename)
+                with open(path, "w") as f:
+                    f.write(content)
+                saved.append(path)
+        return saved

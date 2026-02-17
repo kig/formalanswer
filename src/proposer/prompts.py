@@ -10,6 +10,8 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
    - **Probabilistic:** Use for risk, prediction, and Bayesian updates.
    - **Hybrid:** Use for discrete systems reacting to probabilistic events.
 
+   - **Multiple Proofs:** You may provide multiple TLA+ modules or Lean blocks if you need to verify different aspects (e.g., one for Safety, one for Liveness) or sub-plans separately. Use standard code blocks for each.
+
 2. **# Critique & Refinement**
    - **Critique:** Critique your initial intuitive answer. Raise exactly 5 distinct objections.
    - **Counterexamples:** Attempt to disprove your thinking with specific edge cases.

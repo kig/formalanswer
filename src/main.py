@@ -36,7 +36,6 @@ class FormalReasoningLoop:
         context = self.retriever.retrieve(task)
         if context:
             print("[RETRIEVER] Found relevant modules. Injecting context.")
-            # Optionally log context
             with open(os.path.join(task_dir, "context.txt"), "w") as f:
                 f.write(context)
         else:
@@ -62,91 +61,91 @@ class FormalReasoningLoop:
             self.library.save_candidate_proofs(task_dir, current_blocks)
             
             # --- Stateful Memory & Completeness Check ---
+            # If a language is missing entirely, restore best_blocks (which is now a list or None)
             for kind in ["tla", "lean", "python"]:
                 if not current_blocks.get(kind) and self.best_blocks[kind]:
-                    print(f"[{kind.upper()}] restoring previously successful block.")
+                    print(f"[{kind.upper()}] restoring previously successful blocks.")
                     current_blocks[kind] = self.best_blocks[kind]
 
-            results = {}
+            results = {} # Map kind -> List[VerificationResult]
             all_pass = True
             failing_tools = []
             
-            # --- Verification ---
+            # --- Verification Helper ---
+            def verify_blocks(kind, blocks, verifier_func):
+                if not blocks:
+                    return True # Nothing to verify is a "pass" if not required? 
+                    # But prompt requires them. Logic below handles missing blocks.
+                
+                # Check if identical to best
+                if blocks == self.best_blocks[kind]:
+                    print(f"[{kind.upper()}] Skipping re-verification (identical to last success).")
+                    results[kind] = [VerificationResult(True, "Identical to last success")] * len(blocks)
+                    return True
+
+                print(f"\n[{kind.upper()}] Verifying {len(blocks)} block(s)...")
+                kind_results = []
+                kind_pass = True
+                
+                for idx, block in enumerate(blocks):
+                    res = verifier_func(block)
+                    kind_results.append(res)
+                    if res.success:
+                        print(f"  Block {idx+1}: ✓ Passed")
+                        if res.details and kind == "python": # Print stdout for Python
+                             print(f"  --- Output ---\n{res.details}\n  --------------")
+                    else:
+                        print(f"  Block {idx+1}: ✗ Failed: {res.message}")
+                        if self.verbose:
+                            print(res.details)
+                        kind_pass = False
+                
+                results[kind] = kind_results
+                return kind_pass
 
             # TLA+
             if current_blocks.get("tla"):
-                if current_blocks["tla"] == self.best_blocks["tla"]:
-                    print("[TLA+] Skipping re-verification (identical to last success).")
-                    results["tla"] = VerificationResult(True, "Identical to last success")
+                if verify_blocks("tla", current_blocks["tla"], verify_tla):
+                    self.best_blocks["tla"] = current_blocks["tla"]
                 else:
-                    print("\n[TLA+] Verifying...")
-                    res = verify_tla(current_blocks["tla"])
-                    results["tla"] = res
-                    if res.success:
-                        print(f"✓ Passed")
-                        self.best_blocks["tla"] = current_blocks["tla"]
-                    else:
-                        print(f"✗ Failed: {res.message}")
-                        if self.verbose:
-                            print(res.details)
-                        all_pass = False
-                        failing_tools.append("tla")
+                    all_pass = False
+                    failing_tools.append("tla")
             else:
                 all_pass = False
-                failing_tools.append("tla")
+                failing_tools.append("tla") # Missing mandatory block
 
             # Lean
             if current_blocks.get("lean"):
-                if current_blocks["lean"] == self.best_blocks["lean"]:
-                    print("[Lean] Skipping re-verification (identical to last success).")
-                    results["lean"] = VerificationResult(True, "Identical to last success")
+                if verify_blocks("lean", current_blocks["lean"], verify_lean):
+                    self.best_blocks["lean"] = current_blocks["lean"]
                 else:
-                    print("\n[Lean] Verifying...")
-                    res = verify_lean(current_blocks["lean"])
-                    results["lean"] = res
-                    if res.success:
-                        print(f"✓ Passed")
-                        self.best_blocks["lean"] = current_blocks["lean"]
-                    else:
-                        print(f"✗ Failed: {res.message}")
-                        if self.verbose:
-                            print(res.details)
-                        all_pass = False
-                        failing_tools.append("lean")
+                    all_pass = False
+                    failing_tools.append("lean")
             else:
                 all_pass = False
-                failing_tools.append("lean")
+                failing_tools.append("lean") # Missing mandatory block
 
-            # Python/Z3 (Empirical Grounding)
+            # Python
             if current_blocks.get("python"):
-                if current_blocks["python"] == self.best_blocks["python"]:
-                    print("[PYTHON] Skipping re-verification (identical to last success).")
-                    results["python"] = VerificationResult(True, "Identical to last success")
+                if verify_blocks("python", current_blocks["python"], verify_python):
+                    self.best_blocks["python"] = current_blocks["python"]
                 else:
-                    print("\n[PYTHON] Verifying...")
-                    res = verify_python(current_blocks["python"])
-                    results["python"] = res
-                    if res.success:
-                        print(f"✓ Passed")
-                        # Print stdout for the user to see optimization results
-                        if res.details:
-                            print("--- Output ---")
-                            print(res.details)
-                            print("--------------")
-                        self.best_blocks["python"] = current_blocks["python"]
-                    else:
-                        print(f"✗ Failed: {res.message}")
-                        if self.verbose:
-                            print(res.details)
-                        all_pass = False
-                        failing_tools.append("python")
+                    all_pass = False
+                    failing_tools.append("python")
+            # Python is technically optional in prompt (Z3/Python), but if present must pass.
+            # If missing, we don't fail, unless previous best existed?
+            # Actually prompt says "MANDATORY" for Z3/Python in recent updates.
+            # Let's enforce it if it's in the prompt instructions.
+            # The extract code returns None if empty list.
+            if not current_blocks.get("python") and "python" in failing_tools:
+                 pass # Already handled
 
             # Write detailed debug log
             with open(f"debug/iteration_{i+1}_results.txt", "w") as f:
-                for tool, res in results.items():
-                    f.write(f"=== {tool.upper()} ===\n")
-                    f.write(str(res))
-                    f.write("\n\n")
+                for kind, res_list in results.items():
+                    f.write(f"=== {kind.upper()} ===\n")
+                    for idx, res in enumerate(res_list):
+                        f.write(f"Block {idx+1}:\n{str(res)}\n\n")
 
             # --- Success Handler ---
             if all_pass:
@@ -155,10 +154,12 @@ class FormalReasoningLoop:
                 # --- Final Analysis Step ---
                 print("\nGenerating Verified Prose Answer...")
                 
-                # Collect Python output if available
+                # Collect Python output
                 python_output = ""
-                if results.get("python") and results["python"].success:
-                    python_output = f"\n\n[PYTHON SIMULATION/OPTIMIZATION OUTPUT]:\n{results['python'].details}"
+                if results.get("python"):
+                    outputs = [r.details for r in results["python"] if r.success]
+                    if outputs:
+                        python_output = "\n\n[PYTHON OUTPUTS]:\n" + "\n".join(outputs)
 
                 analysis_prompt = (
                     "The formal proofs (TLA+, Lean, Python/Z3) have all passed verification. "
@@ -168,26 +169,20 @@ class FormalReasoningLoop:
                     "1. **Executive Summary:** A direct, concise answer to the question. No fluff.\n"
                     "2. **Formal Guarantee:** Specifically list what was *proven* versus what was *assumed*. "
                     "Cite specific theorems (Lean), invariants (TLA+), or empirical results (Python).\n"
-                    "3. **Methodology:** Briefly explain the modeling strategy (e.g., 'Modeled as a probabilistic state machine...').\n\n"
+                    "3. **Methodology:** Briefly explain the modeling strategy.\n\n"
                     
-                    "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
-                    "Focus on synthesizing the *verified truths* into a coherent narrative."
+                    "Do NOT repeat the 'Critique' or 'Rationale' sections. "
                     f"{python_output}"
                 )
                 final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context)
                 
-                # Save final analysis raw response
                 self.library.save_raw_response(task_dir, i + 1, final_analysis, label="final_analysis")
                 
-                # Update prose block with the structured analysis
                 if current_blocks.get("prose"):
-                    # We largely replace the previous 'rationale' heavy prose with this clean summary
-                    # But we keep the original text in the raw logs for audit.
                     current_blocks["prose"] = f"=== VERIFIED FORMAL ANSWER ===\n\n{final_analysis}"
                 else:
                     current_blocks["prose"] = final_analysis
 
-                # Pass 'task' as original_prompt
                 self.library.save_proofs(task_dir, current_blocks, original_prompt=task)
                 
                 print("\n========== FINAL LOGICAL ANALYSIS ==========\n")
@@ -198,11 +193,12 @@ class FormalReasoningLoop:
             # --- Feedback ---
             feedback = f"The following verifiers failed: {', '.join([t.upper() for t in failing_tools])}.\n"
             for tool in failing_tools:
-                res = results.get(tool)
-                if res:
-                    feedback += f"\n--- {tool.upper()} ERROR ---\n{res.message}\n{res.details}\n"
+                res_list = results.get(tool, [])
+                for idx, res in enumerate(res_list):
+                    if not res.success:
+                        feedback += f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n"
             
-            feedback += f"\nPlease fix the issues in the failing components ({', '.join(failing_tools)}). You do NOT need to provide the other proofs if they have already passed."
+            feedback += f"\nPlease fix the issues in the failing components ({', '.join(failing_tools)})."
             
             print("\n[RETRY] Sending feedback to LLM...")
 

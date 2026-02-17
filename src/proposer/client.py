@@ -192,21 +192,24 @@ if __name__ == "__main__":
 
     def extract_code(self, response):
         """
-        Extracts TLA+, Z3 (Python), and Lean blocks from the LLM response.
+        Extracts ALL TLA+, Z3 (Python), and Lean blocks from the LLM response.
+        Returns LISTS of strings for each language.
         """
-        tla_match = re.search(r"```tla\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
-        z3_match = re.search(r"```python\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
-        lean_match = re.search(r"```lean\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
+        # Find all matches using re.findall
+        tla_matches = re.findall(r"```tla\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
+        # Match python OR z3 blocks
+        python_matches = re.findall(r"```(?:python|z3)\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
+        lean_matches = re.findall(r"```lean\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
 
         # Remove entire code blocks from prose
         prose = response
         prose = re.sub(r"```tla\s*.*?\s*```", "", prose, flags=re.DOTALL)
-        prose = re.sub(r"```python\s*.*?\s*```", "", prose, flags=re.DOTALL)
+        prose = re.sub(r"```(?:python|z3)\s*.*?\s*```", "", prose, flags=re.DOTALL)
         prose = re.sub(r"```lean\s*.*?\s*```", "", prose, flags=re.DOTALL)
 
         return {
             "prose": prose.strip(),
-            "tla": tla_match.group(1) if tla_match else None,
-            "python": z3_match.group(1) if z3_match else None,
-            "lean": lean_match.group(1) if lean_match else None
+            "tla": tla_matches if tla_matches else None,
+            "python": python_matches if python_matches else None,
+            "lean": lean_matches if lean_matches else None
         }
