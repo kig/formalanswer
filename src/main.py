@@ -10,9 +10,10 @@ from src.library_manager import LibraryManager
 from src.verifiers.common import VerificationResult
 
 class FormalReasoningLoop:
-    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False):
+    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, combat=False):
         self.max_iterations = max_iterations
         self.verbose = verbose
+        self.combat = combat
         self.proposer = Proposer(backend=backend, model_name=model, api_key=api_key, base_url=base_url)
         self.retriever = Retriever()
         self.library = LibraryManager()
@@ -133,10 +134,6 @@ class FormalReasoningLoop:
                     all_pass = False
                     failing_tools.append("python")
             # Python is technically optional in prompt (Z3/Python), but if present must pass.
-            # If missing, we don't fail, unless previous best existed?
-            # Actually prompt says "MANDATORY" for Z3/Python in recent updates.
-            # Let's enforce it if it's in the prompt instructions.
-            # The extract code returns None if empty list.
             if not current_blocks.get("python") and "python" in failing_tools:
                  pass # Already handled
 
@@ -146,6 +143,31 @@ class FormalReasoningLoop:
                     f.write(f"=== {kind.upper()} ===\n")
                     for idx, res in enumerate(res_list):
                         f.write(f"Block {idx+1}:\n{str(res)}\n\n")
+
+            # --- COMBAT MODE ---
+            if all_pass and self.combat:
+                print("\n[COMBAT MODE] Initiating Adversarial Review...")
+                
+                # Extract the argument to critique
+                proof_text = current_blocks.get("prose", "")
+                
+                # 1. The Red Team Attack
+                print("  Red Team is analyzing...")
+                objection = self.proposer.critique(proof_text)
+                print(f"  Objection: {objection[:100]}...")
+                
+                # 2. The Judge's Verdict
+                print("  Judge is deliberating...")
+                score = self.proposer.judge(proof_text, objection)
+                print(f"  Score: {score}/1.0")
+                
+                if score < 0.7:
+                    print("  [COMBAT RESULT] Argument Destroyed. Feedback loop triggered.")
+                    feedback = f"Your formal proofs passed, but your reasoning failed an adversarial review.\n\nREVIEWER OBJECTION:\n{objection}\n\nPlease refine your argument and proofs to address this."
+                    all_pass = False
+                    # We do NOT save proof set yet
+                else:
+                    print("  [COMBAT RESULT] Argument Survived.")
 
             # --- Success Handler ---
             if all_pass:
@@ -162,16 +184,12 @@ class FormalReasoningLoop:
                         python_output = "\n\n[PYTHON OUTPUTS]:\n" + "\n".join(outputs)
 
                 analysis_prompt = (
-                    "Now, construct the FINAL ANSWER to the user's original question. "
-                    "Your answer must follow this structure EXACTLY to ensure usefulness to the reader:\n\n"
-                    
-                    "1. **Executive Summary:** A direct, concise answer to the question. No fluff.\n"
-                    "2. **Formal Guarantee:** Specifically list what was *proven* versus what was *assumed*. "
-                    "Cite specific theorems, invariants, constraints, or simulated results.\n"
-                    "3. **Methodology:** Briefly explain the modeling strategy (e.g., 'Modeled as a probabilistic state machine...').\n\n"
-                    
-                    "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
-                    "Focus on synthesizing the *verified truths* into a coherent narrative."
+                    "The formal proofs (TLA+, Lean, Python/Z3) have all passed verification. "
+                    "Now, please summarize the answer to the user's original question. "
+                    "Analyze the proofs: what specific invariants did we prove? "
+                    "What assumptions does the argument rely on? "
+                    "Under what conditions is this reasoning valid? "
+                    "Present this as a clear, rigorous final answer."
                     f"{python_output}"
                 )
                 final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context)
@@ -191,14 +209,15 @@ class FormalReasoningLoop:
                 return True, final_analysis
             
             # --- Feedback ---
-            feedback = f"The following verifiers failed: {', '.join([t.upper() for t in failing_tools])}.\n"
-            for tool in failing_tools:
-                res_list = results.get(tool, [])
-                for idx, res in enumerate(res_list):
-                    if not res.success:
-                        feedback += f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n"
-            
-            feedback += f"\nPlease fix the issues in the failing components ({', '.join(failing_tools)})."
+            if not feedback: # If feedback wasn't already set by Combat Mode
+                feedback = f"The following verifiers failed: {', '.join([t.upper() for t in failing_tools])}.\n"
+                for tool in failing_tools:
+                    res_list = results.get(tool, [])
+                    for idx, res in enumerate(res_list):
+                        if not res.success:
+                            feedback += f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n"
+                
+                feedback += f"\nPlease fix the issues in the failing components ({', '.join(failing_tools)})."
             
             print("\n[RETRY] Sending feedback to LLM...")
 
@@ -217,15 +236,14 @@ if __name__ == "__main__":
     parser.add_argument("--base-url", help="Base URL for OpenAI/Ollama API")
     parser.add_argument("--api-key", help="API Key (overrides env vars)")
     parser.add_argument("--verbose", action="store_true", help="Show detailed verification errors in output")
+    parser.add_argument("--combat", action="store_true", help="Enable Adversarial Combat Mode (Red Team review)")
     
     args = parser.parse_args()
     
     task_parts = []
-    
     if args.prompt_file:
         with open(args.prompt_file, 'r') as f:
             task_parts.append(f.read())
-            
     if args.task:
         task_parts.append(" ".join(args.task))
         
@@ -239,6 +257,7 @@ if __name__ == "__main__":
         model=args.model,
         api_key=args.api_key,
         base_url=args.base_url,
-        verbose=args.verbose
+        verbose=args.verbose,
+        combat=args.combat
     )
     frl.run(task)

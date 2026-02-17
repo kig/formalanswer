@@ -51,7 +51,7 @@ class Proposer:
 
     def propose(self, task, feedback=None, context=None):
         """
-        Calls the LLM API.
+        Calls the LLM API (Stateful).
         """
         if self.backend == "gemini":
             if feedback:
@@ -85,6 +85,72 @@ class Proposer:
             except Exception as e:
                 print(f"{self.backend.upper()} API Error: {e}")
                 return self._get_mock_response()
+
+    def critique(self, proof_text):
+        """
+        Adversarial Review: Stateless call to find flaws.
+        """
+        prompt = (
+            "You are a 'Red Team' adversary. Your goal is to demolish the following argument.\n"
+            "Even if the formal proofs (Lean/TLA+) are syntactically correct, you must find:\n"
+            "1. Hidden assumptions or tautologies.\n"
+            "2. False premises in the 'Rationale'.\n"
+            "3. Gap between the formal model and reality (the 'Sim-to-Real' gap).\n\n"
+            f"ARGUMENT TO ATTACK:\n{proof_text}\n\n"
+            "OUTPUT FORMAT:\n"
+            "OBJECTION: [One clear, devastating objection].\n"
+            "SEVERITY: [High/Medium/Low]."
+        )
+        return self._call_stateless(prompt)
+
+    def judge(self, proof_text, objection):
+        """
+        Scoring: Evaluates if the proof survives the objection.
+        """
+        prompt = (
+            "You are an impartial Judge.\n"
+            f"ARGUMENT: {proof_text[:2000]}...\n"
+            f"OBJECTION: {objection}\n\n"
+            "Does the objection invalidate the core conclusion?\n"
+            "OUTPUT: A score from 0.0 (Destroyed) to 1.0 (Robust).\n"
+            "Just output the number."
+        )
+        response = self._call_stateless(prompt)
+        try:
+            # Extract float
+            match = re.search(r"(\d+(\.\d+)?)", response)
+            if match:
+                return float(match.group(1))
+            return 0.5
+        except:
+            return 0.5
+
+    def _call_stateless(self, prompt):
+        """
+        Helper for stateless calls (Critique/Judge).
+        """
+        if self.backend == "gemini":
+            try:
+                # Use client.models.generate_content for stateless
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
+                return response.text
+            except Exception as e:
+                print(f"Gemini API Error (Stateless): {e}")
+                return "Error"
+        elif self.backend in ["openai", "ollama"]:
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                print(f"{self.backend.upper()} API Error (Stateless): {e}")
+                return "Error"
+        return "Error"
 
     def _get_mock_response(self):
         # A robust mock response demonstrating the Probabilistic/Predictive architecture
