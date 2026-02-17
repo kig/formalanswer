@@ -44,8 +44,15 @@ s = Solver()
         self.assertIn("MODULE temp", blocks["tla"])
         self.assertIsNotNone(blocks["lean"])
         self.assertIn("import Mathlib", blocks["lean"])
-        self.assertIsNotNone(blocks["z3"])
-        self.assertIn("from z3 import *", blocks["z3"])
+        self.assertIsNotNone(blocks["python"])
+        self.assertIn("from z3 import *", blocks["python"])
+        
+        # Verify prose
+        self.assertIn("# Rationale", blocks["prose"])
+        self.assertNotIn("```tla", blocks["prose"])
+        self.assertNotIn("```lean", blocks["prose"])
+        self.assertNotIn("```python", blocks["prose"])
+        self.assertNotIn("EXTENDS Naturals", blocks["prose"])
 
     def test_extract_code_broken(self):
         """Test extraction when code blocks are malformed or missing."""
@@ -65,7 +72,7 @@ example : 1=1
         # Lean might fail if regex expects closing ticks, let's verify behavior
         # The current regex ````lean\s*\n?(.*?)\n?\s*``` ` expects closing ticks.
         self.assertIsNone(blocks["lean"])
-        self.assertIsNone(blocks["z3"])
+        self.assertIsNone(blocks["python"])
 
     def test_extract_code_empty(self):
         """Test extraction from a response with no code."""
@@ -73,7 +80,7 @@ example : 1=1
         blocks = self.proposer.extract_code(response)
         self.assertIsNone(blocks["tla"])
         self.assertIsNone(blocks["lean"])
-        self.assertIsNone(blocks["z3"])
+        self.assertIsNone(blocks["python"])
 
     def test_propose_mock_call(self):
         """Test that propose calls the chat method."""

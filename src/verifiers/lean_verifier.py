@@ -18,7 +18,7 @@ def verify_lean(code_content: str) -> VerificationResult:
             cwd="work",
             capture_output=True, 
             text=True, 
-            timeout=60
+            timeout=180
         )
         
         if result.returncode == 0:

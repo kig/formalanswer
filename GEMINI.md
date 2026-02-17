@@ -77,6 +77,7 @@ When extending this project, follow this "Test-Driven Agentic" process:
 2.  **Mock the Proposer:** Use `src.proposer.client.Proposer._get_mock_response` to test the verification pipeline without spending API credits.
 3.  **Verify the Verifier:** Create a simple "hello world" file (like `smoke_test.lean`) to prove the toolchain works *before* integrating it into the loop.
 4.  **Iterate on Prompts:** Adjust `prompts.py` to enforce stricter schemas (like the "Shared Constants" rule) if the LLM struggles with consistency.
+5.  **Be logical:**  Before each code change, write a comment with a formal logical reasoning behind it and why it minimizes the amount of code to maintain in the long run while preserving the wanted functionality.
 
 ## 6. Usage
 *   **Run Query:** `./query.sh "Your question here"`

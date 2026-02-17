@@ -1,22 +1,21 @@
+#library
+my_prompts
+
 # Python
 __pycache__/
 *.pyc
+debug/
 venv/
-.env
+work/
+library/
+states/
 
-# System
+# OS
 .DS_Store
 
-# Output/Logs
-debug/
-states/
-*.log
+# User
+.env
+.vscode/
 
-# Lean/TLA+ Build & Temp
-work/.lake/
-work/lake-packages/
-work/temp*
-work/tla2tools.jar
-work/.elan/
-
-work/jdk/
+# Build
+.lake/

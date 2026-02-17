@@ -1,0 +1,11 @@
+name: calculator_add
+description: Adds two numbers.
+inputs:
+  a: Int
+  b: Int
+preconditions:
+  - a > 0
+  - b >= 0
+postconditions:
+  - result > 0
+  - result == a + b

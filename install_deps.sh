@@ -29,15 +29,6 @@ else
     fi
 fi
 
-# Verify Java
-if command_exists java; then
-    echo "Java installed successfully:"
-    java -version
-else
-    echo "Failed to install Java."
-    exit 1
-fi
-
 # 2. Install Lean 4 (via Elan)
 if command_exists lean; then
     echo "Lean is already installed."
@@ -60,13 +51,25 @@ else
     elan default stable
 fi
 
-# Verify Lean
-if command_exists lean; then
-    echo "Lean installed successfully:"
-    lean --version
+# 3. Setup Python Virtual Environment and Install Dependencies
+echo "Setting up Python virtual environment..."
+if command_exists python3; then
+    rm -rf venv
+    python3 -m venv venv
+    ./venv/bin/pip install --upgrade pip
+    echo "Installing Python packages..."
+    ./venv/bin/pip install google-genai python-dotenv openai jax jaxlib pytest z3-solver
 else
-    echo "Failed to install Lean."
+    echo "python3 not found. Please install Python 3.10+."
     exit 1
 fi
+
+# Verify Installations
+echo "-----------------------------------"
+java -version
+lean --version
+./venv/bin/python3 --version
+./venv/bin/pip list | grep -E "jax|google-genai|openai|z3-solver"
+echo "-----------------------------------"
 
 echo "Dependency installation complete."

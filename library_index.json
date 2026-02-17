@@ -1,0 +1,8 @@
+[
+  {
+    "id": "Math.Probabilities",
+    "path": "modules/math/probabilities.lean",
+    "description": "Standard probability bounds.",
+    "type": "lean"
+  }
+]

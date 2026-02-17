@@ -69,6 +69,14 @@ else
     echo "Failed to verify local Lean."
 fi
 
+# --- 3. Setup Python Virtual Environment ---
+echo "Setting up Python virtual environment..."
+rm -rf venv
+python3 -m venv venv
+./venv/bin/pip install --upgrade pip
+echo "Installing Python packages (including JAX for high-performance simulation)..."
+./venv/bin/pip install google-genai python-dotenv openai jax jaxlib pytest z3-solver
+
 # Create a helper script to run commands with these paths
 echo "#!/bin/bash" > env_wrapper.sh
 echo "export JAVA_HOME=\"$JAVA_DIR/Contents/Home\"" >> env_wrapper.sh
