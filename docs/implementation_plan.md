@@ -2,55 +2,41 @@
 
 This document tracks the implementation of the advanced FormalAnswer capabilities.
 
-## Phase 1: Proof Discovery & Reuse (The "Librarian")
+## Phase 1: Proof Discovery & Reuse (The "Librarian") [COMPLETE]
 **Goal:** Enable the LLM to discover and use existing formal modules (`modules/`).
 
-- [ ] **1.1 Interface Extractor** (`src/utils/interface_extractor.py`)
-    - **Logic:** Parse `.lean` and `.tla` files. Strip proof bodies (`by ...`, `proof ...`) and internal implementations. Return clear signatures.
-    - **Test:** `tests/test_interface_extractor.py`
-        - Input: A `.lean` file with `theorem t : P := by simp`.
-        - Output: `theorem t : P` (without the proof).
-- [ ] **1.2 Module Indexer** (`src/library/indexer.py`)
-    - **Logic:** Scan `modules/`. Extract docstrings. Generate `library_index.json`.
-    - **Test:** `tests/test_indexer.py`
-        - Setup: Create dummy `modules/test/math.lean`.
-        - Verify: JSON contains correct ID, description, and path.
-- [ ] **1.3 Librarian Agent** (`src/proposer/retriever.py`)
-    - **Logic:** Two-stage LLM call. 1. Query + Index -> Selection. 2. Selection + Extractor -> Context.
-    - **Test:** `tests/test_retriever_mock.py`
-        - Mock LLM selects "Math.Probabilities".
-        - Verify: `proposer.propose` is called with the extracted interface injected.
-- [ ] **1.4 Orchestrator Integration**
-    - **Logic:** Update `src/main.py` to initialize `Retriever` and modify `Proposer` context.
+- [x] **1.1 Interface Extractor** (`src/utils/interface_extractor.py`)
+- [x] **1.2 Module Indexer** (`src/library/indexer.py`)
+- [x] **1.3 Librarian Agent** (`src/proposer/retriever.py`)
+- [x] **1.4 Orchestrator Integration** (`src/main.py`)
 
-## Phase 2: Formal Skills & API Integration (The "Contractor")
+## Phase 2: Formal Skills & API Integration (The "Contractor") [COMPLETE]
 **Goal:** Safe execution of external tools via formal contracts.
 
-- [ ] **2.1 Skill Schema Definition**
-    - **Logic:** Define YAML format for Skills (Inputs, Preconditions, Postconditions).
-    - **Test:** Create `skills/examples/calculator.yaml`.
-- [ ] **2.2 Contract Generator** (`src/skills/contract_generator.py`)
-    - **Logic:** YAML -> Lean Axioms + TLA+ Operators.
-    - **Test:** `tests/test_contract_gen.py`
-        - Verify generated Lean code compiles.
-- [ ] **2.3 Skill Verifier / Injector** (`src/verifiers/skill_verifier.py`)
-    - **Logic:** Parse generated Python code. Inject `assert` statements based on YAML constraints.
-    - **Test:** `tests/test_skill_verifier.py`
-        - Input: Python code calling `calc.add(a, b)`.
-        - Output: Code with `assert a > 0` (if specified in YAML).
+- [x] **2.1 Skill Schema Definition** (`skills/examples/calculator.yaml`)
+- [x] **2.2 Contract Generator** (`src/skills/contract_generator.py`)
+- [x] **2.3 Skill Verifier / Injector** (`src/verifiers/skill_verifier.py`)
 
-## Phase 3: Advanced Formal Extensions (The "Specialists")
-**Goal:** Add specific high-level reasoning capabilities.
+## Phase 3: Advanced Formal Extensions (The "Specialists") [NEXT]
+**Goal:** Add specific high-level reasoning capabilities to augment the system.
 
 - [ ] **3.1 Causal Verifier** (`src/verifiers/causal_verifier.py`)
-    - **Logic:** Wrapper around `python_verifier.py` that validates Causal DAGs (using `causalnex` or similar via JAX).
-    - **Test:** Verify a simple causal query ("Does X cause Y?").
-- [ ] **3.2 Game Theory Verifier**
-    - **Logic:** Optimization script (Z3/JAX) to find Nash Equilibria.
-    - **Test:** Verify a generic "Prisoner's Dilemma" setup.
+    - **Purpose:** To verify claims like "A causes B" using Structural Causal Models (SCM).
+    - **Logic:** Wrapper around `python_verifier.py` that validates Causal DAGs (using `causalnex` or `DoWhy` via JAX).
+    - **Test:** Verify a simple causal query (e.g., Simpson's Paradox).
+    
+- [ ] **3.2 Skill Library Expansion** (`skills/`)
+    - **Purpose:** Move beyond the calculator.
+    - **Tasks:**
+        - `skills/fs.yaml`: File system operations (read/write) with safety bounds (e.g., no overwriting without flag).
+        - `skills/web.yaml`: Verified web search (e.g., result must match query keywords).
+        
+- [ ] **3.3 Refinement Mapper** (`src/verifiers/refinement_verifier.py`)
+    - **Purpose:** To check if Generated Code (`impl`) actually matches the Formal Spec (`spec`).
+    - **Approach:**
+        - **Static:** Use an LLM-as-Verifier to critique code against TLA+ invariants.
+        - **Dynamic:** Generate property-based tests (Hypothesis/CrossHair) from the TLA+ spec and run them against the Python code.
 
-## Execution Order
-1.  **Commit Documentation.**
-2.  **Implement Phase 1.1 & 1.2** (Core Infrastructure).
-3.  **Implement Phase 1.3 & 1.4** (Agent Integration).
-4.  **Implement Phase 2** (Skills).
+## Phase 4: User Experience & Information Architecture [IN PROGRESS]
+- [x] **4.1 Prompt Preservation:** Save original prompts to `library/.../prompt.txt`.
+- [x] **4.2 Answer Layout:** Refine the final output to be an "Executive Summary" rather than a raw dump of the reasoning process.

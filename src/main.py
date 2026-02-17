@@ -144,27 +144,33 @@ class FormalReasoningLoop:
                 # --- Final Analysis Step ---
                 print("\nGenerating Verified Prose Answer...")
                 analysis_prompt = (
-                    "The formal proofs (TLA+, Lean, Z3) have all passed verification. "
-                    "Construct the FINAL ANSWER to the user's original question based EXCLUSIVELY on these verified results.\n\n"
-                    "Your answer must:\n"
-                    "1. Directly answer the original question.\n"
-                    "2. Explain the 'Shared Invariant' that was formally proven.\n"
-                    "3. Cite the specific results from the TLA+ temporal safety check and the Lean 4 arithmetic proof.\n"
-                    "4. State the boundary conditions (the 'Shared Constants') under which this answer is mathematically guaranteed to be true.\n\n"
-                    "Do not make any claims that were not covered by the formal verification. Present this as a rigorous, superhumanly precise 'Verified Answer'."
+                    "The formal proofs (TLA+, Lean, Python/Z3) have all passed verification. "
+                    "Now, construct the FINAL ANSWER to the user's original question. "
+                    "Your answer must follow this structure EXACTLY to ensure usefulness to the reader:\n\n"
+                    
+                    "1. **Executive Summary:** A direct, concise answer to the question. No fluff.\n"
+                    "2. **Formal Guarantee:** Specifically list what was *proven* versus what was *assumed*. "
+                    "Cite specific theorems (Lean), invariants (TLA+), or empirical results (Python).\n"
+                    "3. **Methodology:** Briefly explain the modeling strategy (e.g., 'Modeled as a probabilistic state machine...').\n\n"
+                    
+                    "Do NOT repeat the 'Critique' or 'Rationale' sections from the previous step. "
+                    "Focus on synthesizing the *verified truths* into a coherent narrative."
                 )
                 final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context)
                 
                 # Save final analysis raw response
                 self.library.save_raw_response(task_dir, i + 1, final_analysis, label="final_analysis")
                 
-                # Combine original prose and final analysis for the library
+                # Update prose block with the structured analysis
                 if current_blocks.get("prose"):
-                    current_blocks["prose"] = f"{current_blocks['prose']}\n\n=== FINAL LOGICAL ANALYSIS ===\n\n{final_analysis}"
+                    # We largely replace the previous 'rationale' heavy prose with this clean summary
+                    # But we keep the original text in the raw logs for audit.
+                    current_blocks["prose"] = f"=== VERIFIED FORMAL ANSWER ===\n\n{final_analysis}"
                 else:
                     current_blocks["prose"] = final_analysis
 
-                self.library.save_proofs(task_dir, current_blocks)
+                # Pass 'task' as original_prompt
+                self.library.save_proofs(task_dir, current_blocks, original_prompt=task)
                 
                 print("\n========== FINAL LOGICAL ANALYSIS ==========\n")
                 print(final_analysis)

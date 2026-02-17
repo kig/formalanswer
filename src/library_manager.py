@@ -40,9 +40,10 @@ class LibraryManager:
             f.write(response)
         return path
 
-    def save_proofs(self, task_dir, blocks):
+    def save_proofs(self, task_dir, blocks, original_prompt=None):
         """
         Saves the successful proofs to the task directory.
+        Optionally saves the original prompt.
         """
         saved_files = []
 
@@ -68,6 +69,12 @@ class LibraryManager:
             path = os.path.join(task_dir, "proof.txt")
             with open(path, "w") as f:
                 f.write(blocks["prose"])
+            saved_files.append(path)
+            
+        if original_prompt:
+            path = os.path.join(task_dir, "prompt.txt")
+            with open(path, "w") as f:
+                f.write(original_prompt)
             saved_files.append(path)
 
         print(f"\n[LIBRARY] Saved successful proofs to {task_dir}/")
