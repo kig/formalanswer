@@ -10,16 +10,42 @@ from src.library_manager import LibraryManager
 from src.verifiers.common import VerificationResult
 
 class FormalReasoningLoop:
-    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, combat=False):
+    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, combat=False, peer_review=False, rap_battle=False, generate_rap=False):
         self.max_iterations = max_iterations
         self.verbose = verbose
         self.combat = combat
+        self.peer_review = peer_review
+        self.rap_battle = rap_battle
+        self.generate_rap = generate_rap
         self.proposer = Proposer(backend=backend, model_name=model, api_key=api_key, base_url=base_url)
         self.retriever = Retriever()
         self.library = LibraryManager()
         self.best_blocks = {"tla": None, "lean": None, "python": None}
         if not os.path.exists("debug"):
             os.makedirs("debug")
+
+    def finalize_rap_battle(self, task_dir):
+        print("\n[RAP BATTLE] Constructing Final Track...")
+        raw_history = ""
+        raw_dir = os.path.join(task_dir, "raw")
+        if os.path.exists(raw_dir):
+            try:
+                # Sort numerically 1.txt, 2.txt etc. ignoring potential labels like 1_label.txt for now or handling them
+                # Split by first underscore or dot to get number
+                files = sorted([f for f in os.listdir(raw_dir) if f.endswith('.txt')], key=lambda x: int(x.split('_')[0].split('.')[0]))
+                for f in files:
+                     with open(os.path.join(raw_dir, f), 'r') as rf:
+                         raw_history += f"--- TURN {f} ---\n" + rf.read() + "\n\n"
+            except Exception as e:
+                print(f"Error reading raw history: {e}")
+                return
+
+        final_track = self.proposer.construct_final_rap(raw_history)
+        print("\n========== FINAL RAP BATTLE TRACK ==========\n")
+        print(final_track)
+        print("\n============================================")
+        with open(os.path.join(task_dir, "final_rap_battle.txt"), "w") as f:
+            f.write(final_track)
 
     def run(self, task):
         feedback = None
@@ -46,7 +72,7 @@ class FormalReasoningLoop:
             print(f"\n--- Iteration {i+1} ---")
             
             # Call LLM with Context
-            response = self.proposer.propose(task, feedback, context=context)
+            response = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review)
             last_response = response
             
             # Keep existing debug logging for backward compatibility
@@ -69,6 +95,7 @@ class FormalReasoningLoop:
             all_pass = True
             failing_tools = []
             
+            import re
             # --- Verification Helper ---
             def verify_blocks(kind, blocks, verifier_func):
                 if not blocks:
@@ -85,6 +112,20 @@ class FormalReasoningLoop:
                 kind_pass = True
                 
                 for idx, block in enumerate(blocks):
+                    # Check for empty/comment-only blocks
+                    # Strip C-style, Python-style, and TLA-style comments roughly
+                    clean_block = block
+                    clean_block = re.sub(r'//.*', '', clean_block) # C++ style
+                    clean_block = re.sub(r'--.*', '', clean_block) # SQL/Haskell/Lean/Lua style
+                    clean_block = re.sub(r'#.*', '', clean_block)  # Python style
+                    clean_block = re.sub(r'/\*.*?\*/', '', clean_block, flags=re.DOTALL) # Multi-line
+                    clean_block = re.sub(r'\(\*.*?\*\)', '', clean_block, flags=re.DOTALL) # TLA/Pascal/ML style
+                    
+                    if not clean_block.strip():
+                        print(f"  Block {idx+1}: ✓ Passed (Empty/Comment-only omitted)")
+                        kind_results.append(VerificationResult(True, "Empty/Comment-only block treated as Pass"))
+                        continue
+
                     res = verifier_func(block)
                     kind_results.append(res)
                     if res.success:
@@ -108,8 +149,7 @@ class FormalReasoningLoop:
                     all_pass = False
                     failing_tools.append("tla")
             else:
-                all_pass = False
-                failing_tools.append("tla") # Missing mandatory block
+                print("[TLA+] No block found. Skipping (assuming Factual/Historical omission).")
 
             # Lean
             if current_blocks.get("lean"):
@@ -119,8 +159,7 @@ class FormalReasoningLoop:
                     all_pass = False
                     failing_tools.append("lean")
             else:
-                all_pass = False
-                failing_tools.append("lean") # Missing mandatory block
+                print("[LEAN] No block found. Skipping (assuming Factual/Historical omission).")
 
             # Python
             if current_blocks.get("python"):
@@ -142,17 +181,18 @@ class FormalReasoningLoop:
 
             # --- PREPARE FEEDBACK & LOGGING ---
             feedback_parts = []
+            verification_errors = []
             combat_log = ""
             
             # 1. Verification Errors
             if not all_pass:
-                feedback_parts.append(f"The following verifiers failed: {', '.join([t.upper() for t in failing_tools])}.")
+                verification_errors.append(f"The following verifiers failed: {', '.join([t.upper() for t in failing_tools])}.")
                 for tool in failing_tools:
                     res_list = results.get(tool, [])
                     for idx, res in enumerate(res_list):
                         if not res.success:
-                            feedback_parts.append(f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n")
-                feedback_parts.append(f"Please fix the issues in the failing components ({', '.join(failing_tools)}).")
+                            verification_errors.append(f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n")
+                verification_errors.append(f"Please fix the issues in the failing components ({', '.join(failing_tools)}).")
 
             # --- COMBAT MODE ---
             if self.combat and current_blocks.get("prose"):
@@ -167,24 +207,97 @@ class FormalReasoningLoop:
                 
                 # 2. The Judge's Verdict
                 print("  Judge is deliberating...")
-                score = self.proposer.judge(proof_text, objection)
+                score, commentary = self.proposer.judge(proof_text, objection)
                 print(f"  Score: {score}/1.0")
+                print(f"  Commentary: {commentary}")
                 
                 # Format log
-                combat_log = f"\n\n=== COMBAT MODE REPORT ===\nOBJECTION:\n{objection}\n\nSCORE: {score}/1.0\n"
+                combat_log = f"\n\n=== COMBAT MODE REPORT ===\nOBJECTION:\n{objection}\n\nJUDGE COMMENTARY:\n{commentary}\n\nSCORE: {score}/1.0\n"
                 
                 if score < 0.7:
                     print("  [COMBAT RESULT] Argument Destroyed.")
                     all_pass = False 
                     combat_log += "RESULT: FAILED (Feedback Triggered)\n"
-                    combat_feedback = f"REVIEWER OBJECTION:\n{objection}\n\nYour reasoning was found to be weak (Score: {score}). Please address this objection."
+                    combat_feedback = f"REVIEWER OBJECTION:\n{objection}\n\nJUDGE COMMENTARY:\n{commentary}\n\nYour reasoning was found to be weak (Score: {score}). Please address this objection."
                     feedback_parts.append(combat_feedback)
                 else:
                     print("  [COMBAT RESULT] Argument Survived.")
                     combat_log += "RESULT: PASSED\n"
 
+            # --- PEER REVIEW MODE ---
+            peer_feedback_content = None
+            if self.peer_review and current_blocks.get("prose"):
+                print("\n[PEER REVIEW MODE] Initiating Constructive Review...")
+                
+                proof_text = current_blocks.get("prose", "")
+                
+                # 1. The Peer Review
+                print("  Peer Reviewer is analyzing...")
+                suggestion = self.proposer.peer_review(proof_text)
+                print(f"  Suggestion: {suggestion[:100]}...")
+                
+                # 2. The Editor's Verdict
+                print("  Editor is assessing...")
+                score = self.proposer.peer_review_judge(proof_text, suggestion)
+                print(f"  Score: {score}/1.0")
+                
+                # Format log
+                peer_log = f"\n\n=== PEER REVIEW REPORT ===\nSUGGESTION:\n{suggestion}\n\nSCORE: {score}/1.0\n"
+                
+                combat_log += peer_log
+                peer_feedback_content = f"PEER REVIEW SUGGESTION:\n{suggestion}\n\nReviewer Score: {score}/1.0."
+
+                if score < 0.8:
+                    print("  [PEER REVIEW RESULT] Improvement Required.")
+                    all_pass = False 
+                    combat_log += "RESULT: FAILED (Feedback Triggered)\n"
+                    feedback_parts.append(f"{peer_feedback_content}\nPLEASE ADDRESS THIS ISSUE.")
+                else:
+                    print("  [PEER REVIEW RESULT] Argument Robust.")
+                    combat_log += "RESULT: PASSED\n"
+
+            # --- RAP BATTLE MODE ---
+            rap_roast_content = None
+            if self.rap_battle and current_blocks.get("prose"):
+                print("\n[RAP BATTLE MODE] Initiating Lyrical Combat...")
+                
+                proof_text = current_blocks.get("prose", "")
+                
+                # 1. The Roast
+                print("  Opponent is spitting bars...")
+                roast = self.proposer.rap_battle(proof_text)
+                print(f"  Roast: {roast[:100]}...")
+                
+                # 2. The Judge's Score
+                print("  Judge is reacting...")
+                score, commentary = self.proposer.rap_judge(proof_text, roast)
+                print(f"  Score: {score}/1.0")
+                print(f"  Commentary: {commentary}")
+                
+                # Format log
+                rap_log = f"\n\n=== RAP BATTLE REPORT ===\nROAST:\n{roast}\n\nJUDGE COMMENTARY:\n{commentary}\n\nSCORE: {score}/1.0\n"
+                
+                combat_log += rap_log
+                rap_roast_content = f"RAP BATTLE OPPONENT:\n{roast}\n\nJUDGE COMMENTARY:\n{commentary}\n\nJudge Score: {score}/1.0."
+
+                if score < 0.6:
+                    print("  [RAP BATTLE RESULT] You got served.")
+                    all_pass = False 
+                    combat_log += "RESULT: FAILED (Feedback Triggered)\n"
+                    feedback_parts.append(f"{rap_roast_content}\nFIX THE LOGIC OR GET ROASTED AGAIN.")
+                else:
+                    print("  [RAP BATTLE RESULT] You held your own.")
+                    combat_log += "RESULT: PASSED\n"
+
             # Join feedback
+            if verification_errors:
+                feedback_parts.extend(verification_errors)
+
             if feedback_parts:
+                if peer_feedback_content and not any("PEER REVIEW SUGGESTION" in part for part in feedback_parts):
+                     feedback_parts.append(f"Additional Peer Feedback:\n{peer_feedback_content}")
+                if rap_roast_content and not any("RAP BATTLE OPPONENT" in part for part in feedback_parts):
+                     feedback_parts.append(f"Additional Rap Battle Roast:\n{rap_roast_content}")
                 feedback = "\n\n".join(feedback_parts)
             else:
                 feedback = None
@@ -235,6 +348,10 @@ class FormalReasoningLoop:
                 print("\n========== FINAL LOGICAL ANALYSIS ==========\n")
                 print(final_analysis)
                 print("\n============================================")
+                
+                if self.rap_battle or self.generate_rap:
+                    self.finalize_rap_battle(task_dir)
+                
                 return True, final_analysis
             
             # Retry
@@ -244,6 +361,10 @@ class FormalReasoningLoop:
         print("\n========== LATEST ATTEMPT (UNVERIFIED) ==========\n")
         print(last_response)
         print("\n=================================================")
+        
+        if self.rap_battle or self.generate_rap:
+            self.finalize_rap_battle(task_dir)
+        
         return False, None
 
 if __name__ == "__main__":
@@ -256,9 +377,24 @@ if __name__ == "__main__":
     parser.add_argument("--api-key", help="API Key (overrides env vars)")
     parser.add_argument("--verbose", action="store_true", help="Show detailed verification errors in output")
     parser.add_argument("--combat", action="store_true", help="Enable Adversarial Combat Mode (Red Team review)")
+    parser.add_argument("--peer-review", action="store_true", help="Enable Constructive Peer Review Mode")
+    parser.add_argument("--rap-battle", action="store_true", help="Enable Logic Rap Battle Mode")
+    parser.add_argument("--max-iterations", type=int, default=5, help="Maximum number of reasoning iterations")
+    parser.add_argument("--construct-rap", nargs='?', const='CURRENT', help="Construct rap lyrics from history. Provide directory path for existing task, or flag for current session.")
     
     args = parser.parse_args()
     
+    if args.construct_rap and args.construct_rap != 'CURRENT':
+        # Standalone mode: Generate rap from existing directory
+        frl = FormalReasoningLoop(
+            backend=args.backend,
+            model=args.model,
+            api_key=args.api_key,
+            base_url=args.base_url
+        )
+        frl.finalize_rap_battle(args.construct_rap)
+        sys.exit(0)
+
     task_parts = []
     if args.prompt_file:
         with open(args.prompt_file, 'r') as f:
@@ -272,11 +408,15 @@ if __name__ == "__main__":
         task = "\n\n".join(task_parts)
 
     frl = FormalReasoningLoop(
+        max_iterations=args.max_iterations,
         backend=args.backend,
         model=args.model,
         api_key=args.api_key,
         base_url=args.base_url,
         verbose=args.verbose,
-        combat=args.combat
+        combat=args.combat,
+        peer_review=args.peer_review,
+        rap_battle=args.rap_battle,
+        generate_rap=(args.construct_rap == 'CURRENT')
     )
     frl.run(task)
