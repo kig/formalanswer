@@ -8,14 +8,13 @@
 **Goal:** Transform the LLM from a probabilistic token generator into a verifiable reasoning engine. An output is only accepted if it compiles and passes all formal checks.
 
 ## 2. The Modern Reasoning Stack
-We utilize a simplified, high-power stack optimized for the 2026 landscape of automated reasoning.
+We utilize a simplified, high-power stack optimized for automated reasoning.
 
 ### A. Lean 4 (The Universal Verifier)
 *   **Role:** The "Brain" and "Constraint Solver".
 *   **Responsibilities:**
     *   **Logic:** Verifies structural arguments using **Aesop** (Best-First Proof Search).
-    *   **Arithmetic:** Verifies data consistency and invariants using SMT-style tactics (`linarith`, `omega`).
-    *   **Replacement:** Replaces standalone Z3 scripts by integrating satisfiability checking directly into the proof kernel.
+    *   **Arithmetic:** Verifies data consistency and invariants using SMT-style tactics (`linarith`, `omega`, `nonlinarith`).
 *   **Key Libraries:** `Mathlib`, `Aesop`.
 
 ### B. TLA+ (The Safety Inspector)
@@ -25,7 +24,7 @@ We utilize a simplified, high-power stack optimized for the 2026 landscape of au
     *   **Process Modeling:** Ensures the *behavior* of the reasoning agent or system is safe.
 *   **Tooling:** `tla2tools.jar` (TLC Model Checker).
 
-### C. Z3 (The Heavy Lifter - Optional)
+### C. Z3/JAX (The Heavy Lifter - Optional)
 *   **Role:** The "Constraint Optimizer".
 *   **Responsibilities:**
     *   **Combinatorial Search:** Handles complex constraint satisfaction problems (CSP) and large-scale optimization tasks that are cumbersome in Lean.
@@ -77,8 +76,13 @@ When extending this project, follow this "Test-Driven Agentic" process:
 2.  **Mock the Proposer:** Use `src.proposer.client.Proposer._get_mock_response` to test the verification pipeline without spending API credits.
 3.  **Verify the Verifier:** Create a simple "hello world" file (like `smoke_test.lean`) to prove the toolchain works *before* integrating it into the loop.
 4.  **Iterate on Prompts:** Adjust `prompts.py` to enforce stricter schemas (like the "Shared Constants" rule) if the LLM struggles with consistency.
+5.  **Be logical:**  Before each code change, write a comment with a formal logical reasoning behind it and why it minimizes the amount of code to maintain in the long run while preserving the wanted functionality.
 
 ## 6. Usage
 *   **Run Query:** `./query.sh "Your question here"`
 *   **Clean Build:** `cd work && lake build`
 *   **View Logs:** `cat debug/iteration_X_results.txt`
+
+## Think clearly
+
+Remember to critique your response, address the criticism, and write out the formal logic behind your decisions before implementation - correcting each point if needed.

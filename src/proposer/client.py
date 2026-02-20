@@ -101,14 +101,17 @@ class Proposer:
         elif self.backend in ["openai", "ollama"]:
             if feedback:
                 prompt = (
-                    "The previous attempt failed verification.\n"
-                    "INSTRUCTIONS:\n"
-                    "1. **REWRITE:** Your response must contain ONLY the corrected argument and proofs. Nothing else.\n"
-                    "2. **PRIORITY:** The most important part is the **corrected formal proofs**.\n"
-                    "3. Rewrite only the failed proofs.\n"
-                    "FEEDBACK:\n"
-                    f"{feedback}\n\n"
                     f"{context_prefix}"
+                    "The previous attempt failed verification or requires improvement based on review.\n"
+                    f"{feedback_header}\n"
+                    f"{feedback}\n\n"
+                    "INSTRUCTIONS:\n"
+                    "1. **IGNORE THE REVIEWER:** Do not talk to, argue with, or acknowledge the reviewer/judge. Do not say 'The reviewer is right' or 'I will fix this'.\n"
+                    "2. **ONLY TRUTH:** Your response must contain ONLY the corrected argument and proofs. Nothing else.\n"
+                    "3. **MAINTAIN PERSONA:** If in Rap Battle, start immediately with the verse. If in Logic Mode, start immediately with Mode Selection.\n"
+                    "4. **PRIORITY:** The most important part is the **corrected formal proofs**.\n"
+                    "5. **Format:** Go straight to the standard 5-section format. NO PREAMBLE. NO APOLOGIES. NO META-COMMENTARY.\n"
+                    "6. Regenerate the entire response (Mode, Critique, Rationale, Proofs)."
                 )
                 self.history.append({"role": "user", "content": prompt})
             else:
