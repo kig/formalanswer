@@ -35,7 +35,7 @@ class TestCombatMock(unittest.TestCase):
         # Iteration 2: Critique finds flaw, Judge gives high score (PASS)
         
         mock_proposer.critique.side_effect = ["This is weak.", "This is solid."]
-        mock_proposer.judge.side_effect = [0.2, 0.9] # Fail, then Pass
+        mock_proposer.judge.side_effect = [(0.2, "Weak commentary"), (0.9, "Strong commentary")] # Fail, then Pass
         
         # Initialize Loop with Combat=True
         loop = FormalReasoningLoop(max_iterations=3, combat=True)

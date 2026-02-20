@@ -49,7 +49,7 @@ class Proposer:
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
 
-    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False):
+    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False):
         """
         Calls the LLM API (Stateful).
         """
@@ -73,6 +73,15 @@ class Proposer:
                 "1. **NO APOLOGETICS:** Do not respond to the reviewer or critique. Do not try to be polite or placate the reviewer.\n"
                 "2. **ATTACK IS THE BEST DEFENSE:** Pre-emptively refute potential objections.\n"
                 "3. **TRUTH IS THE BEST ATTACK:** Be rigorously correct. Any weakness will be exploited.\n\n"
+             )
+        elif peer_review:
+             context_prefix = (
+                "CONTEXT: You are in PEER REVIEW MODE.\n"
+                "Your output will be reviewed by a helpful but rigorous colleague.\n"
+                "**RULES OF ENGAGEMENT:**\n"
+                "1. **COLLABORATIVE RIGOR:** Be detailed and clear. The goal is to build a rock-solid proof together.\n"
+                "2. **OPENNESS:** Be prepared to refine your logic based on constructive feedback.\n"
+                "3. **PRECISION:** Ensure all formal proofs are complete and well-documented.\n\n"
              )
 
         if self.backend == "gemini":
