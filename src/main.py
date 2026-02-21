@@ -216,7 +216,24 @@ class FormalReasoningLoop:
                     res_list = results.get(tool, [])
                     for idx, res in enumerate(res_list):
                         if not res.success:
-                            verification_errors.append(f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n")
+                            error_msg = f"\n--- {tool.upper()} BLOCK {idx+1} ERROR ---\n{res.message}\n{res.details}\n"
+                            
+                            # TLA+ Explain Trace
+                            if tool == "tla" and "[COUNTER-EXAMPLE TRACE]:" in res.details:
+                                try:
+                                    match = re.search(r"\[COUNTER-EXAMPLE TRACE\]:\n(.*)", res.details, re.DOTALL)
+                                    if match:
+                                        trace = match.group(1)
+                                        # Safely access spec (handle if list length mismatch, though unlikely)
+                                        if idx < len(current_blocks.get("tla", [])):
+                                            spec = current_blocks["tla"][idx]
+                                            print("  [TLA+] Explaining counter-example trace...")
+                                            explanation = self.proposer.explain_trace(trace, spec)
+                                            error_msg += f"\n[TRACE EXPLANATION]:\n{explanation}\n"
+                                except Exception as e:
+                                    print(f"  [TLA+] Error explaining trace: {e}")
+
+                            verification_errors.append(error_msg)
                 verification_errors.append(f"Please fix the issues in the failing components ({', '.join(failing_tools)}).")
 
             # --- COMBAT MODE ---

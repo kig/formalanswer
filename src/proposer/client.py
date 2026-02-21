@@ -119,6 +119,27 @@ class Proposer:
                 print(f"{self.backend.upper()} API Error: {e}")
                 return self._get_mock_response()
 
+    def explain_trace(self, trace_text, spec_code):
+        """
+        Interprets a TLA+ counter-example trace for the user/LLM.
+        """
+        prompt = (
+            "You are a TLA+ Expert Debugger.\n"
+            "Below is a TLA+ specification and a counter-example trace produced by TLC.\n"
+            "Analyze the trace step-by-step and explain logically WHY the invariant was violated.\n"
+            "Keep it concise (3-4 sentences).\n\n"
+            f"SPECIFICATION:\n{spec_code[:2000]}...\n\n" # Truncate spec if needed
+            f"TRACE:\n{trace_text}\n\n"
+            "OUTPUT FORMAT:\n"
+            "EXPLANATION: [Your explanation]"
+        )
+        response = self._call_stateless(prompt)
+        
+        # Strip "EXPLANATION: " prefix if present
+        if response.startswith("EXPLANATION:"):
+            return response[12:].strip()
+        return response
+
     def rap_battle(self, proof_text):
         """
         Rap Battle Review: Stateless call to find flaws with style.
