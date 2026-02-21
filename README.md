@@ -32,6 +32,8 @@ FormalAnswer has evolved into a self-healing, learning system:
 *   **Sim-to-Real Consistency:** A strict validator ensures that the Python simulation structurally mirrors the TLA+ specification (constants match, actions have corresponding functions).
 *   **Trace Explanation:** If TLA+ finds a counter-example, the system uses an LLM pass to translate the raw state dump into a plain-English explanation of *why* the invariant failed.
 *   **Incremental Repair:** Retries request patches only for the failing blocks, preserving successful proofs and saving tokens.
+*   **Parallel Verification:** Independent verifiers (Lean, TLA+, Python) run concurrently to reduce latency.
+*   **Rich CLI:** Structured, color-coded output with status spinners and panels for better user experience.
 
 ## Installation
 
@@ -78,6 +80,11 @@ Run a natural language query through the Formal Reasoning Loop:
 ./query.sh --model gemini-3-pro-preview "Schedule 3 meetings for 5 people with overlapping 'No-Fly' zones, where Person A cannot be in a room with Person B."
 ```
 
+**Factual Mode (No Formal Proofs):**
+```bash
+./query.sh "What is the capital of France?" --mode factual
+```
+
 ### Advanced Usage (Backends)
 
 You can specify different LLM backends using command-line flags:
@@ -104,6 +111,14 @@ export OPENAI_API_KEY=sk-...
 *   `--model`: Specific model name.
 *   `--base-url`: Custom API endpoint (e.g., for vLLM or custom Ollama port).
 *   `--api-key`: Override API key from CLI.
+*   `--mode`: Force a specific reasoning mode: `discrete`, `probabilistic`, `hybrid`, `factual`.
+*   `--combat`: Enable Adversarial Combat Mode (Red Team review).
+*   `--peer-review`: Enable Constructive Peer Review Mode.
+*   `--rap-battle`: Enable Logic Rap Battle Mode.
+*   `--construct-rap`: Construct rap lyrics from history (`CURRENT` or path).
+*   `--prompt-file`: Load the prompt from a text file.
+*   `--max-iterations`: Maximum number of reasoning iterations (default: 5).
+*   `--verbose`: Show detailed verification errors in output.
 
 ## Verification Ecosystem
 
