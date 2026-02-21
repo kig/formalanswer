@@ -1,33 +1,16 @@
-# FormalAnswer Improvement Plan
+## Priority 4: Smart Tactics (The "Hammer")
+**Goal:** Reduce trivial failures by equipping the LLM with robust, high-power tactics.
 
-## Priority 1: Reliability & Feedback (The "Self-Correcting Loop")
-**Goal:** Drastically increase the probability that the LLM can fix its own errors by providing surgical, structured feedback from the formal tools.
+- [x] **Prompt Engineering for Tactics**
+    - [x] Update `prompts.py` to explicitly recommend `aesop` for logic and `omega`/`linarith` for arithmetic.
+    - [x] Add a "Troubleshooting Guide" in the system prompt for common errors (e.g., "If `simp` fails, try `unfold` then `ring`").
+- [ ] **Auto-Repair Script (Python Middleware)**
+    - [ ] Create `src/verifiers/auto_repair.py`.
+    - [ ] If Lean fails with "tactic failed", try substituting the tactic with a stronger one (e.g., replace `simp` with `aesop`) and re-run verification *locally* before asking the LLM.
 
-- [x] **Enhance Lean 4 Error Parsing**
-    - [x] Analyze raw `lake` output for common error patterns.
-    - [x] Implement regex extraction for Line Number, Error Type, and Message.
-    - [x] Format feedback to point specifically at the failing line in the prompt.
-- [x] **Enhance TLA+ Error Parsing**
-    - [x] Analyze `tla2tools` output (Parser errors vs. Model Checking errors).
-    - [x] Extract "Error location" (line/column) and "Counter-example trace" (state transitions).
-    - [x] Format feedback to distinguish between "Syntax Error" (fix code) and "Invariant Violation" (fix logic).
-- [x] **Unified Feedback Injection**
-    - [x] Update `main.py` to aggregate structured errors.
-    - [x] Update `proposer/client.py` to present these errors clearly (e.g., "Fix Line 10: ...").
+## Priority 5: Interactive/Incremental Repair
+**Goal:** Reduce token usage and context window bloat.
 
-## Priority 2: Knowledge Reuse (The "Library")
-**Goal:** Stop starting from scratch. Allow the system to learn from previous successful proofs.
-
-- [x] **Simple Proof Indexing**
-    - [x] Create a lightweight indexer that scans `library/` for `SUCCESS` states.
-    - [x] Extract `Shared Constants` and `Theorems` into a `knowledge_base.json`.
-- [x] **Context Retrieval (RAG)**
-    - [x] Update `Retriever` to search the local `knowledge_base.json`.
-    - [x] Inject relevant past TLA+/Lean snippets into the System Prompt as "Reference Patterns".
-
-## Priority 3: Consistency Checks (The "Sim-to-Real" Bridge)
-**Goal:** Ensure the Python simulation actually matches the Formal Spec.
-
-- [x] **Constant Consistency Validator**
-    - [x] Implement a regex-based extractor to find `CONSTANTS` in TLA+ and global vars in Python.
-    - [x] specific check: Warning if `MaxRetries = 5` in TLA+ but `MAX_RETRIES = 3` in Python.
+- [ ] **Diff-Based Repair**
+    - [ ] Update `client.py` to ask the LLM for *patches* (e.g., "Replace lines 10-15 with...") instead of full files on retry.
+    - [ ] Implement a simple patch applier in `main.py`.

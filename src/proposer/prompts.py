@@ -60,6 +60,7 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
    - **IF OMITTED:** Do NOT output an empty block or comments. Just omit the section or write "N/A".
    - Prove *logical* or *arithmetic* properties.
    - **Do NOT** use placeholders (`sorry`). If a full proof is impossible, prove a simplified but rigorous lemma.
+   - **Tip:** Use `aesop` for logic/search and `omega` for Presburger arithmetic. Prefer `zify at *; linarith` for mixed integer/nat inequalities.
    - **Reference:**
    ```lean
    import Mathlib
@@ -84,6 +85,16 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
    if s.check() == sat:
        print(s.model())
    ```
+
+**Troubleshooting Guide (Self-Correction):**
+- **Lean 4:**
+  - If `simp` fails, try `unfold [definition_name]` then `ring` or `aesop`.
+  - If `linarith` fails on Naturals (`Nat`), use `zify at *; linarith` or `omega`.
+  - If a function application fails, check if you need to pass implicit arguments explicitly.
+- **TLA+:**
+  - **Invariant Violation:** The model reached a bad state. Tighten the `Next` action guards or fix the logic.
+  - **Deadlock:** The system has no valid next step. Ensure `Next` covers all cases or add `\/ UNCHANGED vars`.
+  - **Parser Error:** Check for missing `EXTENDS`, `VARIABLES`, or correct indentation.
 
 **Process:**
 Your output will be mechanically verified. If probabilistic, the Z3/Python script will be treated as an empirical grounding check.
