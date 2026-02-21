@@ -23,6 +23,16 @@ This project uses the **"Lean 4 + TLA+"** stack, representing the 2026 gold stan
     *   Acts as the "Heavy Lifter" for complex combinatorial problems.
     *   Used when the problem involves difficult optimization or constraint satisfaction tasks better suited for a dedicated solver.
 
+## New Features (Feb 2026)
+
+FormalAnswer has evolved into a self-healing, learning system:
+
+*   **Auto-Repair (The "Hammer"):** If a proof fails due to a weak tactic (e.g., `simp`), the system automatically attempts stronger alternatives (`aesop`, `omega`, `linarith`) *before* asking the LLM to rewrite.
+*   **Knowledge Reuse (RAG):** Successful proofs are indexed in a local "Knowledge Base". When facing a new problem, the system retrieves relevant TLA+ and Lean snippets to seed the context.
+*   **Sim-to-Real Consistency:** A strict validator ensures that the Python simulation structurally mirrors the TLA+ specification (constants match, actions have corresponding functions).
+*   **Trace Explanation:** If TLA+ finds a counter-example, the system uses an LLM pass to translate the raw state dump into a plain-English explanation of *why* the invariant failed.
+*   **Incremental Repair:** Retries request patches only for the failing blocks, preserving successful proofs and saving tokens.
+
 ## Installation
 
 1.  **Prerequisites:**
