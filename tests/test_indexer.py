@@ -37,7 +37,7 @@ class TestIndexer(unittest.TestCase):
             f.write("(* Safety protocol for circuit breakers. *)\nMODULE CircuitBreaker ...")
 
         # Run the indexer with the test directory and output file
-        index = index_modules(modules_dir=self.test_dir, output_file=self.output_file)
+        index = index_modules(modules_dir=self.test_dir, library_dir=None, output_file=self.output_file)
             
         # Verify results
         self.assertEqual(len(index), 2)

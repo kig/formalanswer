@@ -56,7 +56,7 @@ def index_modules(modules_dir=DEFAULT_MODULES_DIR, library_dir="library", output
                     index.append(entry)
 
     # 2. Scan Successful Task Library
-    if os.path.exists(library_dir):
+    if library_dir and os.path.exists(library_dir):
         # library/TaskName/proof_candidate.lean
         for task_name in os.listdir(library_dir):
             task_path = os.path.join(library_dir, task_name)

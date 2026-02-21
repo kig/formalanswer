@@ -5,7 +5,7 @@ from typing import Tuple, Optional, List
 from .lean_verifier import verify_lean
 from .common import VerificationResult
 
-def try_auto_repair(code_content: str, error_msg: str) -> Tuple[bool, str, Optional[VerificationResult]]:
+def try_auto_repair(code_content: str, error_msg: str, filename: str = "temp.lean") -> Tuple[bool, str, Optional[VerificationResult]]:
     """
     Attempts to fix common Lean 4 tactic failures by substituting stronger tactics.
     Currently focuses on arithmetic and logical simplification failures.
@@ -13,6 +13,7 @@ def try_auto_repair(code_content: str, error_msg: str) -> Tuple[bool, str, Optio
     Args:
         code_content: The original Lean code.
         error_msg: The error message from the failed verification.
+        filename: unique filename to use for verification to avoid collisions.
         
     Returns:
         (success, fixed_code, verification_result)
@@ -92,7 +93,7 @@ def try_auto_repair(code_content: str, error_msg: str) -> Tuple[bool, str, Optio
         candidate_code = "\n".join(lines)
         
         # Verify
-        result = verify_lean(candidate_code)
+        result = verify_lean(candidate_code, filename=filename)
         
         if result.success:
             print(f"  [AUTO-REPAIR] Success! Repaired with '{new_tactic}'.")

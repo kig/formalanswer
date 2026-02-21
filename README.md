@@ -2,7 +2,29 @@
 
 **FormalAnswer** is a "System 2" orchestrator for Large Language Models that uses **Formal Methods** to mechanically verify natural language reasoning.
 
-It implements a "Neural-Algebraic Mirror": the LLM proposes a logical argument, and FormalAnswer validates it using a suite of formal tools (Lean 4, TLA+, Z3) before accepting it.
+It implements a "Neural-Algebraic Mirror": the LLM proposes a logical argument, and FormalAnswer validates it using a suite of formal tools (Lean 4, TLA+, JAX) before accepting it.
+
+| Feature | Traditional LLM (System 1) | FormalAnswer (System 2) |
+| :--- | :--- | :--- |
+| **Reliability** | "Sounds correct" (Probabilistic) | **Is correct** (Deterministic) |
+| **Logic** | Hallucinates plausible steps | Mechanical Proof (Lean 4) |
+| **Safety** | Guesses edge cases | Exhaustive Search (TLA+) |
+| **Grounding** | Statistical patterns | Empirical Simulation (JAX/Z3) |
+| **Result** | A confident guess | **A Verified Formal Answer** |
+
+---
+
+## 🎤 Logic Rap Battles: Adversarial Reasoning
+
+FormalAnswer isn't just a solver; it's a fighter. Use the `--rap-battle` mode to watch two logical agents tear each other's arguments apart in rhyming verse before settling the score with a formal proof.
+
+```bash
+./query.sh "Who wins in a battle between a centralized and a decentralized oracle?" --rap-battle
+```
+
+**Why?** Because finding a flaw in a proof is easier when you're trying to win a roast. This mode uses **Adversarial Red-Teaming** to force the LLM to find its own "Sim-to-Real" gaps.
+
+---
 
 ## The Modern Reasoning Stack
 
@@ -103,8 +125,15 @@ This runs the `tests/` suite, checking code extraction and mock API interactions
 Run a natural language query through the Formal Reasoning Loop:
 
 ```bash
-./query.sh --model gemini-3-pro-preview "Schedule 3 meetings for 5 people with overlapping 'No-Fly' zones, where Person A cannot be in a room with Person B."
+./query.sh "Schedule 3 meetings for 5 people with overlapping 'No-Fly' zones, where Person A cannot be in a room with Person B."
 ```
+
+### 💡 Example Gallery
+
+*   **Distributed Systems:** "Design a deadlock-free distributed locking protocol for a multi-region database."
+*   **Game Theory:** "Calculate the Nash Equilibrium for a 3-player version of Rock-Paper-Scissors with a customized payout matrix."
+*   **Supply Chain:** "Prove that a 'Just-in-Time' inventory system is stable under a 10% daily variance in transit times."
+*   **Optimization:** "Find the most cost-effective arrangement of solar panels on a non-convex roof, avoiding shadows from nearby trees."
 
 **Factual Mode (No Formal Proofs):**
 ```bash
@@ -145,6 +174,15 @@ export OPENAI_API_KEY=sk-...
 *   `--prompt-file`: Load the prompt from a text file.
 *   `--max-iterations`: Maximum number of reasoning iterations (default: 5).
 *   `--verbose`: Show detailed verification errors in output.
+
+## Integrations
+
+FormalAnswer can be used as a backend tool for other AI agents (Claude, ChatGPT, Gemini).
+
+*   **Claude Desktop (MCP):** Native integration via the Model Context Protocol.
+*   **Gemini/OpenAI:** Function calling definitions provided.
+
+See [docs/integrations.md](docs/integrations.md) for setup instructions.
 
 ## Verification Ecosystem
 
