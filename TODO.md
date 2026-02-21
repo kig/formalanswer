@@ -4,9 +4,9 @@
 - [x] **Prompt Engineering for Tactics**
     - [x] Update `prompts.py` to explicitly recommend `aesop` for logic and `omega`/`linarith` for arithmetic.
     - [x] Add a "Troubleshooting Guide" in the system prompt for common errors (e.g., "If `simp` fails, try `unfold` then `ring`").
-- [ ] **Auto-Repair Script (Python Middleware)**
-    - [ ] Create `src/verifiers/auto_repair.py`.
-    - [ ] If Lean fails with "tactic failed", try substituting the tactic with a stronger one (e.g., replace `simp` with `aesop`) and re-run verification *locally* before asking the LLM.
+- [x] **Auto-Repair Script (Python Middleware)**
+    - [x] Create `src/verifiers/auto_repair.py`.
+    - [x] If Lean fails with "tactic failed", try substituting the tactic with a stronger one (e.g., replace `simp` with `aesop`) and re-run verification *locally* before asking the LLM.
 
 ## Priority 5: Interactive/Incremental Repair
 **Goal:** Reduce token usage and context window bloat.

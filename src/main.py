@@ -5,6 +5,7 @@ from src.verifiers.tla_verifier import verify_tla
 from src.verifiers.lean_verifier import verify_lean
 from src.verifiers.python_verifier import verify_python
 from src.verifiers.consistency_checker import check_consistency
+from src.verifiers.auto_repair import try_auto_repair
 from src.proposer.client import Proposer
 from src.proposer.retriever import Retriever
 from src.library_manager import LibraryManager
@@ -129,6 +130,16 @@ class FormalReasoningLoop:
                         continue
 
                     res = verifier_func(block)
+                    
+                    # --- AUTO-REPAIR (Lean Only) ---
+                    if not res.success and kind == "lean":
+                        repair_success, fixed_code, repaired_res = try_auto_repair(block, res.details)
+                        if repair_success:
+                            print(f"  Block {idx+1}: 🔧 Auto-Repaired!")
+                            # Update the block in the list so it gets saved correctly later if needed
+                            blocks[idx] = fixed_code 
+                            res = repaired_res
+                    
                     kind_results.append(res)
                     if res.success:
                         print(f"  Block {idx+1}: ✓ Passed")
