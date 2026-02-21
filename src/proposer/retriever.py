@@ -10,12 +10,14 @@ class Retriever:
         self.modules_dir = modules_dir
         self.index_file = index_file
         
-        # Load or create index
-        if os.path.exists(self.index_file):
-            with open(self.index_file, "r") as f:
-                self.index = json.load(f)
-        else:
-            self.index = index_modules(modules_dir=self.modules_dir, output_file=self.index_file)
+        # Always refresh the index to ensure latest library additions are available
+        self.refresh_index()
+
+    def refresh_index(self):
+        """
+        Re-scans the library and updates the index.
+        """
+        self.index = index_modules(modules_dir=self.modules_dir, output_file=self.index_file)
 
     def retrieve(self, query: str) -> str:
         """
@@ -41,9 +43,10 @@ class Retriever:
                 content = f.read()
 
             if mod['type'] == 'lean':
-                interface = extract_lean_interface(content)
+                # Return full content for context learning
+                interface = f"```lean\n{content}\n```"
             else:
-                interface = extract_tla_interface(content)
+                interface = f"```tla\n{content}\n```"
 
             context_blocks.append(f"[MODULE: {mod['id']}]")
             context_blocks.append(f"-- Description: {mod['description']}")

@@ -18,12 +18,12 @@
 ## Priority 2: Knowledge Reuse (The "Library")
 **Goal:** Stop starting from scratch. Allow the system to learn from previous successful proofs.
 
-- [ ] **Simple Proof Indexing**
-    - [ ] Create a lightweight indexer that scans `library/` for `SUCCESS` states.
-    - [ ] Extract `Shared Constants` and `Theorems` into a `knowledge_base.json`.
-- [ ] **Context Retrieval (RAG)**
-    - [ ] Update `Retriever` to search the local `knowledge_base.json`.
-    - [ ] Inject relevant past TLA+/Lean snippets into the System Prompt as "Reference Patterns".
+- [x] **Simple Proof Indexing**
+    - [x] Create a lightweight indexer that scans `library/` for `SUCCESS` states.
+    - [x] Extract `Shared Constants` and `Theorems` into a `knowledge_base.json`.
+- [x] **Context Retrieval (RAG)**
+    - [x] Update `Retriever` to search the local `knowledge_base.json`.
+    - [x] Inject relevant past TLA+/Lean snippets into the System Prompt as "Reference Patterns".
 
 ## Priority 3: Consistency Checks (The "Sim-to-Real" Bridge)
 **Goal:** Ensure the Python simulation actually matches the Formal Spec.
