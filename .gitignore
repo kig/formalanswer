@@ -10,6 +10,7 @@ venv/
 /work/
 /library/
 states/
+local_index.json
 
 # OS
 .DS_Store

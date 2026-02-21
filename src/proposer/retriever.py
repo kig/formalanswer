@@ -2,22 +2,29 @@ import json
 import os
 import shutil
 import string
-from src.library.indexer import index_modules, INDEX_FILE, DEFAULT_MODULES_DIR
-from src.utils.interface_extractor import extract_lean_interface, extract_tla_interface
+from src.library.indexer import index_modules, INDEX_FILE, LOCAL_INDEX_FILE, DEFAULT_MODULES_DIR
 
 class Retriever:
-    def __init__(self, modules_dir=DEFAULT_MODULES_DIR, index_file=INDEX_FILE):
+    def __init__(self, modules_dir=DEFAULT_MODULES_DIR, index_file=INDEX_FILE, local_index_file=LOCAL_INDEX_FILE):
         self.modules_dir = modules_dir
         self.index_file = index_file
+        self.local_index_file = local_index_file
         
         # Always refresh the index to ensure latest library additions are available
         self.refresh_index()
 
     def refresh_index(self):
         """
-        Re-scans the library and updates the index.
+        Re-scans the library and updates indices.
         """
-        self.index = index_modules(modules_dir=self.modules_dir, output_file=self.index_file)
+        index_modules()
+        
+        # Merge both indices
+        self.index = []
+        for f in [self.index_file, self.local_index_file]:
+            if os.path.exists(f):
+                with open(f, "r") as idx:
+                    self.index.extend(json.load(idx))
 
     def retrieve(self, query: str) -> str:
         """
