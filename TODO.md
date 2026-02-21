@@ -1,33 +1,9 @@
-## Priority 4: Smart Tactics (The "Hammer")
-**Goal:** Reduce trivial failures by equipping the LLM with robust, high-power tactics.
+## Priority 6: Structural Alignment (Sim-to-Real Phase 2)
+**Goal:** Ensure the Python simulation structurally mirrors the TLA+ specification's actions.
 
-- [x] **Prompt Engineering for Tactics**
-    - [x] Update `prompts.py` to explicitly recommend `aesop` for logic and `omega`/`linarith` for arithmetic.
-    - [x] Add a "Troubleshooting Guide" in the system prompt for common errors (e.g., "If `simp` fails, try `unfold` then `ring`").
-- [x] **Auto-Repair Script (Python Middleware)**
-    - [x] Create `src/verifiers/auto_repair.py`.
-    - [x] If Lean fails with "tactic failed", try substituting the tactic with a stronger one (e.g., replace `simp` with `aesop`) and re-run verification *locally* before asking the LLM.
-
-## Priority 5: Interactive/Incremental Repair
-
-**Goal:** Reduce token usage and context window bloat.
-
-
-
-- [x] **Strict Repair Mode**
-
-
-
-    - [x] Update `prompts.py` to provide a specific "Repair Template" (e.g., "Output ONLY the corrected code block inside ```lean ... ```").
-
-
-
-    - [x] Update `client.py` to detect if we are in a repair loop and switch to this minimal template.
-
-
-
-    - [x] Update `main.py` to merge the new code blocks into the old `current_blocks` dictionary (replacing only the failed ones).
-
-
-
-
+- [x] **Action Extraction**
+    - [x] Update `consistency_checker.py` to extract action names from the TLA+ `Next` formula (e.g., `Next == \/ Relocate \/ ThreatShift` -> `['Relocate', 'ThreatShift']`).
+    - [x] Update `consistency_checker.py` to extract function names from the Python script.
+- [x] **Structure Comparison**
+    - [x] Implement `check_structure(tla_content, python_content)` to warn if major TLA+ actions are missing corresponding Python functions.
+    - [x] Integrate into `main.py`'s consistency check block.

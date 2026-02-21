@@ -1,5 +1,82 @@
 import re
-from typing import Dict, List, Tuple
+from typing import Dict, List, Set
+
+def extract_tla_actions(content: str) -> Set[str]:
+    """
+    Extracts action names from the TLA+ Next formula.
+    Looks for: Next == \/ Action1 \/ Action2 ...
+            or Next == Action1 \/ Action2
+    Returns a set of action names.
+    """
+    actions = set()
+    
+    # Capture Next definition body
+    # Use lookahead for terminator: blank line, separator, or End of String
+    next_match = re.search(r"Next\s*==\s*(.*?)(?=(?:\n\s*\n|====|----|\Z))", content, re.DOTALL)
+    
+    if next_match:
+        body = next_match.group(1)
+        
+        # Split by TLA+ disjunction symbol \/
+        parts = re.split(r"\\/", body)
+        
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            
+            # The action name is usually the first identifier in the part
+            # e.g. "Action1" or "Action1 /\ guard"
+            # Match first word that looks like an Action (Capitalized)
+            # Be careful of "UNCHANGED vars"
+            
+            # Simple heuristic: First word
+            first_word = part.split()[0] if part.split() else ""
+            
+            # Remove punctuation (like parens if Action(arg))
+            first_word = re.sub(r"[^a-zA-Z0-9_]", "", first_word)
+            
+            if first_word and re.match(r"^[A-Z]\w+$", first_word):
+                 actions.add(first_word)
+                     
+    # Filter out common keywords
+    ignored = {"UNCHANGED", "vars", "TRUE", "FALSE", "IF", "THEN", "ELSE", "LET", "IN"}
+    return {a for a in actions if a not in ignored}
+
+def extract_python_functions(content: str) -> Set[str]:
+    """
+    Extracts all function names defined in the Python script.
+    """
+    # Simple regex for def function_name
+    return set(re.findall(r"^\s*def\s+(\w+)", content, re.MULTILINE))
+
+def check_structure(tla_content: str, python_content: str) -> List[str]:
+    """
+    Checks if major TLA+ actions have corresponding Python functions.
+    """
+    warnings = []
+    
+    tla_actions = extract_tla_actions(tla_content)
+    py_funcs = extract_python_functions(python_content)
+    
+    # Normalize Python functions for comparison (snake_case -> lower, or just lower)
+    # TLA: Relocate -> relocate
+    # TLA: ThreatShift -> threatshift (or threat_shift?)
+    
+    # Let's use flexible matching:
+    # 1. Exact match (lower)
+    # 2. Snake case match (Relocate -> relocate, ThreatShift -> threat_shift)
+    
+    py_normalized = {f.lower().replace("_", "") for f in py_funcs}
+    
+    for action in tla_actions:
+        # Expected Python name
+        normalized = action.lower()
+        
+        if normalized not in py_normalized:
+            warnings.append(f"Structure Warning: TLA+ action '{action}' defined in 'Next', but no corresponding function found in Python script (expected '{action.lower()}' or similar).")
+            
+    return warnings
 
 def extract_tla_constants(content: str) -> Dict[str, str]:
     """

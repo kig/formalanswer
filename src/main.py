@@ -4,7 +4,7 @@ import os
 from src.verifiers.tla_verifier import verify_tla
 from src.verifiers.lean_verifier import verify_lean
 from src.verifiers.python_verifier import verify_python
-from src.verifiers.consistency_checker import check_consistency
+from src.verifiers.consistency_checker import check_consistency, check_structure
 from src.verifiers.auto_repair import try_auto_repair
 from src.proposer.client import Proposer
 from src.proposer.retriever import Retriever
@@ -198,6 +198,7 @@ class FormalReasoningLoop:
                  tla_full = "\n".join(current_blocks["tla"])
                  py_full = "\n".join(current_blocks["python"])
                  consistency_warnings = check_consistency(tla_full, py_full)
+                 consistency_warnings.extend(check_structure(tla_full, py_full))
                  if consistency_warnings:
                      print(f"[CONSISTENCY] Found {len(consistency_warnings)} warnings.")
                      for w in consistency_warnings:
