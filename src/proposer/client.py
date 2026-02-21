@@ -3,6 +3,7 @@ import os
 from google import genai
 from dotenv import load_dotenv
 from .prompts import SYSTEM_PROMPT, format_user_prompt
+from .repair_prompt import REPAIR_PROMPT
 
 try:
     from openai import OpenAI
@@ -49,7 +50,7 @@ class Proposer:
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
 
-    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False):
+    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False, force_mode=None):
         """
         Calls the LLM API (Stateful).
         """
@@ -87,18 +88,9 @@ class Proposer:
         if self.backend == "gemini":
             if feedback:
                 persona = ""
-                prompt = (
-                    "The previous attempt failed verification.\n"
-                    "INSTRUCTIONS:\n"
-                    "1. **REWRITE:** Your response must contain ONLY the corrected argument and proofs. Nothing else.\n"
-                    "2. **PRIORITY:** The most important part is the **corrected formal proofs**.\n"
-                    "3. Rewrite only the failed proofs.\n"
-                    "FEEDBACK:\n"
-                    f"{feedback}\n\n"
-                    f"{context_prefix}"
-                )
+                prompt = REPAIR_PROMPT.format(feedback=feedback)
             else:
-                prompt = f"{context_prefix}{format_user_prompt(task, context)}"
+                prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"
             
             try:
                 response = self.chat.send_message(prompt)
@@ -109,22 +101,10 @@ class Proposer:
 
         elif self.backend in ["openai", "ollama"]:
             if feedback:
-                prompt = (
-                    f"{context_prefix}"
-                    "The previous attempt failed verification or requires improvement based on review.\n"
-                    f"{feedback_header}\n"
-                    f"{feedback}\n\n"
-                    "INSTRUCTIONS:\n"
-                    "1. **IGNORE THE REVIEWER:** Do not talk to, argue with, or acknowledge the reviewer/judge. Do not say 'The reviewer is right' or 'I will fix this'.\n"
-                    "2. **ONLY TRUTH:** Your response must contain ONLY the corrected argument and proofs. Nothing else.\n"
-                    "3. **MAINTAIN PERSONA:** If in Rap Battle, start immediately with the verse. If in Logic Mode, start immediately with Mode Selection.\n"
-                    "4. **PRIORITY:** The most important part is the **corrected formal proofs**.\n"
-                    "5. **Format:** Go straight to the standard 5-section format. NO PREAMBLE. NO APOLOGIES. NO META-COMMENTARY.\n"
-                    "6. Regenerate the entire response (Mode, Critique, Rationale, Proofs)."
-                )
+                prompt = REPAIR_PROMPT.format(feedback=feedback)
                 self.history.append({"role": "user", "content": prompt})
             else:
-                prompt = f"{context_prefix}{format_user_prompt(task, context)}"
+                prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"
                 self.history.append({"role": "user", "content": prompt})
             
             try:

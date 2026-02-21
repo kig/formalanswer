@@ -9,8 +9,25 @@
     - [x] If Lean fails with "tactic failed", try substituting the tactic with a stronger one (e.g., replace `simp` with `aesop`) and re-run verification *locally* before asking the LLM.
 
 ## Priority 5: Interactive/Incremental Repair
+
 **Goal:** Reduce token usage and context window bloat.
 
-- [ ] **Diff-Based Repair**
-    - [ ] Update `client.py` to ask the LLM for *patches* (e.g., "Replace lines 10-15 with...") instead of full files on retry.
-    - [ ] Implement a simple patch applier in `main.py`.
+
+
+- [x] **Strict Repair Mode**
+
+
+
+    - [x] Update `prompts.py` to provide a specific "Repair Template" (e.g., "Output ONLY the corrected code block inside ```lean ... ```").
+
+
+
+    - [x] Update `client.py` to detect if we are in a repair loop and switch to this minimal template.
+
+
+
+    - [x] Update `main.py` to merge the new code blocks into the old `current_blocks` dictionary (replacing only the failed ones).
+
+
+
+
