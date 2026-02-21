@@ -371,7 +371,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Formal Reasoning Loop")
     parser.add_argument("task", nargs="*", help="The natural language query/task (can be multiple strings)")
     parser.add_argument("--prompt-file", help="Load the prompt from a file.")
-    parser.add_argument("--backend", default="gemini", choices=["gemini", "openai", "ollama"], help="LLM backend to use")
+    parser.add_argument("--backend", default="gemini", choices=["gemini", "openai", "ollama", "mock"], help="LLM backend to use")
     parser.add_argument("--model", help="Specific model name (e.g., gpt-4, gemini-2.5-flash, llama3)")
     parser.add_argument("--base-url", help="Base URL for OpenAI/Ollama API")
     parser.add_argument("--api-key", help="API Key (overrides env vars)")

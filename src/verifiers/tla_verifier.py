@@ -30,7 +30,7 @@ def verify_tla(spec_content: str, module_name: str = "temp") -> VerificationResu
 
     try:
         # Use local JDK
-        java_bin = "work/jdk/Contents/Home/bin/java"
+        java_bin = "work/jdk/bin/java"
         if not os.path.exists(java_bin):
             java_bin = "java" # fallback
             

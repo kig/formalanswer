@@ -13,8 +13,10 @@ def verify_lean(code_content: str) -> VerificationResult:
     try:
         # Run lean via lake to access dependencies
         # cwd="work" ensures we are in the lake project root
+        # Use env_wrapper.sh to ensure local elan/lean are in PATH
+        cmd = ["../env_wrapper.sh", "lake", "env", "lean", "temp.lean"]
         result = subprocess.run(
-            ["lake", "env", "lean", "temp.lean"], 
+            cmd, 
             cwd="work",
             capture_output=True, 
             text=True, 

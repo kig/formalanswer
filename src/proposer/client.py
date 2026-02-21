@@ -18,7 +18,11 @@ class Proposer:
         self.model_name = model_name
         self.history = []  # For stateless backends like OpenAI/Ollama
 
-        if self.backend == "gemini":
+        if self.backend == "mock":
+            print("[PROPOSER] Using MOCK backend.")
+            self.client = None
+            
+        elif self.backend == "gemini":
             self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
             self.model_name = self.model_name or "gemini-2.5-flash"
             self.client = genai.Client(vertexai=True, api_key=self.api_key)
@@ -53,6 +57,9 @@ class Proposer:
         """
         Calls the LLM API (Stateful).
         """
+        if self.backend == "mock":
+            return self._get_mock_response()
+
         context_prefix = ""
         if rap_battle:
             context_prefix = (
@@ -359,6 +366,8 @@ class Proposer:
         """
         Helper for stateless calls (Critique/Judge).
         """
+        if self.backend == "mock":
+            return "Mock Response"
         if self.backend == "gemini":
             try:
                 # Use client.models.generate_content for stateless
@@ -386,30 +395,33 @@ class Proposer:
         # A robust mock response demonstrating the Probabilistic/Predictive architecture
         return """
 # Mode Selection
-[MODE: PROBABILISTIC]
+[MODE: DISCRETE]
 
 # Critique & Refinement
-- **Critique:** Initial assumption X is too strong.
-- **Refinement:** Relax assumption X to Y.
+- **Critique:** Assumption 1
+- **Critique:** Assumption 2
+- **Critique:** Assumption 3
+- **Critique:** Assumption 4
+- **Critique:** Assumption 5
+- **Refinement:** Refined answer.
 
 # Rationale & Shared Constants
-We model a generic system with a threshold.
+We model a simple counter.
 
-Shared Invariant: `Metric > Threshold -> State = DONE`
+Shared Invariant: `val <= Threshold`
 
 Shared Constants:
 - `Threshold`: 10
-- `CurrentValue`: 5
 
 # TLA+ Specification (The Safety Inspector)
 ```tla
----- MODULE GenericSystem ----
+---- MODULE temp ----
 EXTENDS Naturals, TLC
-CONSTANTS Threshold
-VARIABLES val
+VARIABLE val
 Init == val = 0
-Next == val' = val + 1
-Spec == Init /\ [][Next]_<<val>>
+Next == val < 10 /\ val' = val + 1
+Spec == Init /\ [][Next]_val
+Safety == val <= 10
 ====
 ```
 
@@ -418,13 +430,14 @@ Spec == Init /\ [][Next]_<<val>>
 import Mathlib
 import Aesop
 
-theorem simple_math (x : Nat) : x + 0 = x := by simp
+theorem simple_inc (n : Nat) (h : n < 10) : n + 1 <= 10 := by
+  omega
 ```
 
 # Z3/Python Script (The Empirical Grounding)
 ```python
 print("Simulation running...")
-assert True
+assert 1 + 1 == 2
 ```
 """
 
