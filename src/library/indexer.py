@@ -64,7 +64,7 @@ def index_local_library(library_dir="library", output_file=LOCAL_INDEX_FILE):
     """
     Scans library/ directory for successful tasks and generates local_index.json.
     """
-    if not os.path.exists(library_dir):
+    if not library_dir or not os.path.exists(library_dir):
         return []
 
     index = []
@@ -104,12 +104,12 @@ def index_local_library(library_dir="library", output_file=LOCAL_INDEX_FILE):
         json.dump(index, f, indent=2)
     return index
 
-def index_modules():
+def index_modules(modules_dir=DEFAULT_MODULES_DIR, library_dir="library", static_index_file=INDEX_FILE, local_index_file=LOCAL_INDEX_FILE):
     """
     Refreshes both static and local indices.
     """
-    s = index_static_modules()
-    l = index_local_library()
+    s = index_static_modules(modules_dir=modules_dir, output_file=static_index_file)
+    l = index_local_library(library_dir=library_dir, output_file=local_index_file)
     print(f"Indexed {len(s)} static modules and {len(l)} local tasks.")
     return s + l
 

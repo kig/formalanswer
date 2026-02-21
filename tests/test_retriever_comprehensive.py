@@ -59,7 +59,7 @@ Safe == \A n \in Nodes : votes[n] <= 1
 """)
 
         # 3. Generate Index
-        index_modules(modules_dir=self.test_dir, output_file=self.index_file)
+        index_modules(modules_dir=self.test_dir, library_dir=None, static_index_file=self.index_file)
         
         # 4. Initialize Retriever
         self.retriever = Retriever(modules_dir=self.test_dir, index_file=self.index_file)

@@ -31,7 +31,7 @@ class TestRetriever(unittest.TestCase):
 theorem chebyshev (x : Nat) : x > 0 := by simp""")
 
         # Generate index
-        index_modules(modules_dir=self.test_dir, output_file=self.index_file)
+        index_modules(modules_dir=self.test_dir, library_dir=None, static_index_file=self.index_file)
 
     def tearDown(self):
         if os.path.exists(self.test_dir):
