@@ -356,6 +356,22 @@ class Proposer:
         )
         return self._call_stateless(prompt)
 
+    def produce_song_gen_lyrics(self, rap_script):
+        """
+        Formats the rap script into Tencent SongGeneration compatible format.
+        """
+        prompt = (
+            "You are a Lyrics Formatter. Convert the following Rap Battle Script into Tencent SongGeneration format.\n"
+            "FORMAT RULES:\n"
+            "1. One paragraph per segment, starting with [structure tag] and ending with blank line.\n"
+            "2. One sentence per line. No punctuation inside sentences.\n"
+            "3. Tags: [verse], [chorus], [bridge]. Avoid intro/outro/inst tags if they have no lyrics.\n"
+            "4. Structure tags must be on their own line.\n\n"
+            f"INPUT SCRIPT:\n{rap_script}\n\n"
+            "OUTPUT ONLY THE FORMATTED LYRICS."
+        )
+        return self._call_stateless(prompt)
+
     def _call_stateless(self, prompt):
         """
         Helper for stateless calls (Critique/Judge).

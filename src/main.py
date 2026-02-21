@@ -31,7 +31,7 @@ class FormalReasoningLoop:
             os.makedirs("debug")
 
     def finalize_rap_battle(self, task_dir):
-        print("\n[RAP BATTLE] Constructing Final Track...")
+        log_info("[RAP BATTLE] Constructing Final Track...")
         raw_history = ""
         raw_dir = os.path.join(task_dir, "raw")
         if os.path.exists(raw_dir):
@@ -43,15 +43,20 @@ class FormalReasoningLoop:
                      with open(os.path.join(raw_dir, f), 'r') as rf:
                          raw_history += f"--- TURN {f} ---\n" + rf.read() + "\n\n"
             except Exception as e:
-                print(f"Error reading raw history: {e}")
+                log_error(f"Error reading raw history: {e}")
                 return
 
         final_track = self.proposer.construct_final_rap(raw_history)
-        print("\n========== FINAL RAP BATTLE TRACK ==========\n")
-        print(final_track)
-        print("\n============================================")
+        log_section("FINAL RAP BATTLE TRACK", final_track, style="magenta")
         with open(os.path.join(task_dir, "final_rap_battle.txt"), "w") as f:
             f.write(final_track)
+            
+        # Tencent SongGeneration Format
+        log_info("[RAP BATTLE] Formatting for Tencent SongGeneration...")
+        formatted_track = self.proposer.produce_song_gen_lyrics(final_track)
+        with open(os.path.join(task_dir, "final_rap_battle_formatted.txt"), "w") as f:
+            f.write(formatted_track)
+        log_success("Saved formatted lyrics to final_rap_battle_formatted.txt")
 
     def run(self, task):
         feedback = None
