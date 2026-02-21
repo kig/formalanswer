@@ -131,7 +131,7 @@ else
 fi
 
 echo "Ensuring Python packages are installed..."
-./"$VENV_DIR"/bin/pip install google-genai python-dotenv openai jax jaxlib pytest mcp fastapi uvicorn "z3-solver==4.13.3.0" pyyaml
+./"$VENV_DIR"/bin/pip install google-genai python-dotenv openai jax jaxlib pytest mcp fastapi uvicorn "z3-solver==4.13.3.0" pyyaml rich
 
 # Create a helper script to run commands with these paths
 echo "#!/bin/bash" > env_wrapper.sh
