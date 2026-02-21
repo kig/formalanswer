@@ -19,9 +19,47 @@ This project uses the **"Lean 4 + TLA+"** stack, representing the 2026 gold stan
     *   Specializes in **Temporal Logic** to verify state transitions, concurrency, and deadlock freedom.
     *   Ensures the *process* of reasoning is safe over time.
 
-3.  **Z3 (The Constraint Optimizer - Optional):**
-    *   Acts as the "Heavy Lifter" for complex combinatorial problems.
-    *   Used when the problem involves difficult optimization or constraint satisfaction tasks better suited for a dedicated solver.
+3.  **Python/JAX/Z3 (The Empirical Grounding):**
+    *   Acts as the "Heavy Lifter" for simulations, optimization, and constraint solving.
+    *   **Z3:** Used for complex constraint satisfaction problems (scheduling, resource allocation).
+    *   **JAX/NumPy:** Used for high-performance Monte Carlo simulations and probabilistic modeling.
+    *   **Role:** Bridges the gap between abstract formalisms and real-world data or messy physics.
+
+## New Features (Feb 2026)
+
+FormalAnswer has evolved into a self-healing, learning system:
+
+*   **Auto-Repair (The "Hammer"):** If a proof fails due to a weak tactic (e.g., `simp`), the system automatically attempts stronger alternatives (`aesop`, `omega`, `linarith`) *before* asking the LLM to rewrite.
+*   **Knowledge Reuse (RAG):** Successful proofs are indexed in a local "Knowledge Base". When facing a new problem, the system retrieves relevant TLA+ and Lean snippets to seed the context.
+*   **Sim-to-Real Consistency:** A strict validator ensures that the Python simulation structurally mirrors the TLA+ specification (constants match, actions have corresponding functions).
+*   **Trace Explanation:** If TLA+ finds a counter-example, the system uses an LLM pass to translate the raw state dump into a plain-English explanation of *why* the invariant failed.
+*   **Incremental Repair:** Retries request patches only for the failing blocks, preserving successful proofs and saving tokens.
+*   **Parallel Verification:** Independent verifiers (Lean, TLA+, Python) run concurrently to reduce latency.
+*   **Rich CLI:** Structured, color-coded output with status spinners and panels for better user experience.
+
+## Reasoning Modes
+
+The system automatically selects (or can be forced to use via `--mode`) one of four reasoning strategies:
+
+1.  **Discrete (`[MODE: DISCRETE]`):**
+    *   **Use Case:** Logic puzzles, mathematical proofs, algorithm verification, and absolute safety claims.
+    *   **Tools:** Relies heavily on **Lean 4** (for deductive correctness) and **TLA+** (for state transitions).
+    *   **Goal:** 100% certainty based on axioms.
+
+2.  **Probabilistic (`[MODE: PROBABILISTIC]`):**
+    *   **Use Case:** Risk assessment, forecasting, simulation, and scenarios with uncertainty.
+    *   **Tools:** Uses **Python/JAX** for Monte Carlo simulations or Bayesian inference. Formal proofs (Lean/TLA+) might be used for model bounds but not for the final answer.
+    *   **Goal:** Expected value optimization or probability distribution estimation.
+
+3.  **Hybrid (`[MODE: HYBRID]`):**
+    *   **Use Case:** Systems reacting to uncertain environments (e.g., a self-driving car controller).
+    *   **Tools:** **TLA+** verifies the control logic (safety), while **Python/Z3** models the environment (physics/constraints).
+    *   **Goal:** "Safe control under uncertain conditions."
+
+4.  **Factual (`[MODE: FACTUAL]`):**
+    *   **Use Case:** Historical facts, definitions, or simple queries where formal modeling is overkill.
+    *   **Tools:** Skips TLA+/Lean. Uses **Python/Z3** only if needed to verify logical consistency of the retrieved facts.
+    *   **Goal:** Accurate retrieval and basic logical consistency.
 
 ## Installation
 
@@ -68,6 +106,11 @@ Run a natural language query through the Formal Reasoning Loop:
 ./query.sh --model gemini-3-pro-preview "Schedule 3 meetings for 5 people with overlapping 'No-Fly' zones, where Person A cannot be in a room with Person B."
 ```
 
+**Factual Mode (No Formal Proofs):**
+```bash
+./query.sh "What is the capital of France?" --mode factual
+```
+
 ### Advanced Usage (Backends)
 
 You can specify different LLM backends using command-line flags:
@@ -94,6 +137,14 @@ export OPENAI_API_KEY=sk-...
 *   `--model`: Specific model name.
 *   `--base-url`: Custom API endpoint (e.g., for vLLM or custom Ollama port).
 *   `--api-key`: Override API key from CLI.
+*   `--mode`: Force a specific reasoning mode: `discrete`, `probabilistic`, `hybrid`, `factual`.
+*   `--combat`: Enable Adversarial Combat Mode (Red Team review).
+*   `--peer-review`: Enable Constructive Peer Review Mode.
+*   `--rap-battle`: Enable Logic Rap Battle Mode.
+*   `--construct-rap`: Construct rap lyrics from history (`CURRENT` or path).
+*   `--prompt-file`: Load the prompt from a text file.
+*   `--max-iterations`: Maximum number of reasoning iterations (default: 5).
+*   `--verbose`: Show detailed verification errors in output.
 
 ## Verification Ecosystem
 

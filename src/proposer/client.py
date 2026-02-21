@@ -3,6 +3,7 @@ import os
 from google import genai
 from dotenv import load_dotenv
 from .prompts import SYSTEM_PROMPT, format_user_prompt
+from .repair_prompt import REPAIR_PROMPT
 
 try:
     from openai import OpenAI
@@ -53,7 +54,7 @@ class Proposer:
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
 
-    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False):
+    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False, force_mode=None):
         """
         Calls the LLM API (Stateful).
         """
@@ -94,18 +95,9 @@ class Proposer:
         if self.backend == "gemini":
             if feedback:
                 persona = ""
-                prompt = (
-                    "The previous attempt failed verification.\n"
-                    "INSTRUCTIONS:\n"
-                    "1. **REWRITE:** Your response must contain ONLY the corrected argument and proofs. Nothing else.\n"
-                    "2. **PRIORITY:** The most important part is the **corrected formal proofs**.\n"
-                    "3. Rewrite only the failed proofs.\n"
-                    "FEEDBACK:\n"
-                    f"{feedback}\n\n"
-                    f"{context_prefix}"
-                )
+                prompt = REPAIR_PROMPT.format(feedback=feedback)
             else:
-                prompt = f"{context_prefix}{format_user_prompt(task, context)}"
+                prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"
             
             try:
                 response = self.chat.send_message(prompt)
@@ -116,22 +108,10 @@ class Proposer:
 
         elif self.backend in ["openai", "ollama"]:
             if feedback:
-                prompt = (
-                    f"{context_prefix}"
-                    "The previous attempt failed verification or requires improvement based on review.\n"
-                    f"{feedback_header}\n"
-                    f"{feedback}\n\n"
-                    "INSTRUCTIONS:\n"
-                    "1. **IGNORE THE REVIEWER:** Do not talk to, argue with, or acknowledge the reviewer/judge. Do not say 'The reviewer is right' or 'I will fix this'.\n"
-                    "2. **ONLY TRUTH:** Your response must contain ONLY the corrected argument and proofs. Nothing else.\n"
-                    "3. **MAINTAIN PERSONA:** If in Rap Battle, start immediately with the verse. If in Logic Mode, start immediately with Mode Selection.\n"
-                    "4. **PRIORITY:** The most important part is the **corrected formal proofs**.\n"
-                    "5. **Format:** Go straight to the standard 5-section format. NO PREAMBLE. NO APOLOGIES. NO META-COMMENTARY.\n"
-                    "6. Regenerate the entire response (Mode, Critique, Rationale, Proofs)."
-                )
+                prompt = REPAIR_PROMPT.format(feedback=feedback)
                 self.history.append({"role": "user", "content": prompt})
             else:
-                prompt = f"{context_prefix}{format_user_prompt(task, context)}"
+                prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"
                 self.history.append({"role": "user", "content": prompt})
             
             try:
@@ -145,6 +125,27 @@ class Proposer:
             except Exception as e:
                 print(f"{self.backend.upper()} API Error: {e}")
                 return self._get_mock_response()
+
+    def explain_trace(self, trace_text, spec_code):
+        """
+        Interprets a TLA+ counter-example trace for the user/LLM.
+        """
+        prompt = (
+            "You are a TLA+ Expert Debugger.\n"
+            "Below is a TLA+ specification and a counter-example trace produced by TLC.\n"
+            "Analyze the trace step-by-step and explain logically WHY the invariant was violated.\n"
+            "Keep it concise (3-4 sentences).\n\n"
+            f"SPECIFICATION:\n{spec_code[:2000]}...\n\n" # Truncate spec if needed
+            f"TRACE:\n{trace_text}\n\n"
+            "OUTPUT FORMAT:\n"
+            "EXPLANATION: [Your explanation]"
+        )
+        response = self._call_stateless(prompt)
+        
+        # Strip "EXPLANATION: " prefix if present
+        if response.startswith("EXPLANATION:"):
+            return response[12:].strip()
+        return response
 
     def rap_battle(self, proof_text):
         """
@@ -359,6 +360,22 @@ class Proposer:
             "- Smooth out transitions but keep the original logical content.\n\n"
             f"RAW BATTLE HISTORY:\n{raw_history}\n\n"
             "OUTPUT THE FINAL SCRIPT ONLY."
+        )
+        return self._call_stateless(prompt)
+
+    def produce_song_gen_lyrics(self, rap_script):
+        """
+        Formats the rap script into Tencent SongGeneration compatible format.
+        """
+        prompt = (
+            "You are a Lyrics Formatter. Convert the following Rap Battle Script into Tencent SongGeneration format.\n"
+            "FORMAT RULES:\n"
+            "1. One paragraph per segment, starting with [structure tag] and ending with blank line.\n"
+            "2. One sentence per line. No punctuation inside sentences.\n"
+            "3. Tags: [verse], [chorus], [bridge]. Avoid intro/outro/inst tags if they have no lyrics.\n"
+            "4. Structure tags must be on their own line.\n\n"
+            f"INPUT SCRIPT:\n{rap_script}\n\n"
+            "OUTPUT ONLY THE FORMATTED LYRICS."
         )
         return self._call_stateless(prompt)
 
