@@ -7,14 +7,19 @@ echo "Starting LOCAL dependency installation..."
 
 # --- 1. Install Java (Local OpenJDK) ---
 JAVA_DIR="$WORK_DIR/jdk"
-if [ -d "$JAVA_DIR" ] && [ -f "$JAVA_DIR/bin/java" ]; then
+OS=$(uname -s)
+ARCH=$(uname -m)
+
+if [ "$OS" == "Darwin" ]; then
+    JAVA_HOME_EXT="/Contents/Home"
+else
+    JAVA_HOME_EXT=""
+fi
+
+if [ -d "$JAVA_DIR" ] && [ -f "$JAVA_DIR${JAVA_HOME_EXT}/bin/java" ]; then
     echo "Local JDK already present at $JAVA_DIR"
 else
     echo "Downloading OpenJDK..."
-    
-    # Detect Platform
-    OS=$(uname -s)
-    ARCH=$(uname -m)
     
     BASE_URL="https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2%2B13"
     
@@ -59,13 +64,13 @@ else
 fi
 
 # Set JAVA_HOME and PATH for this session
-export JAVA_HOME="$JAVA_DIR"
+export JAVA_HOME="$JAVA_DIR${JAVA_HOME_EXT}"
 export PATH="$JAVA_HOME/bin:$PATH"
 
-if "$JAVA_DIR/bin/java" -version >/dev/null 2>&1; then
+if [ -f "$JAVA_HOME/bin/java" ]; then
     echo "Local Java verified."
 else
-    echo "Failed to verify local Java."
+    echo "Failed to verify local Java at $JAVA_HOME/bin/java"
 fi
 
 
@@ -130,9 +135,14 @@ echo "Ensuring Python packages are installed..."
 
 # Create a helper script to run commands with these paths
 echo "#!/bin/bash" > env_wrapper.sh
-echo "export JAVA_HOME=\"$JAVA_DIR\"" >> env_wrapper.sh
-echo "export ELAN_HOME=\"$ELAN_HOME\"" >> env_wrapper.sh
+echo "# Keep these relative to the source dir to work on other systems." >> env_wrapper.sh
+echo "SCRIPT_DIR=\"\$( cd \"\$( dirname \"\${BASH_SOURCE[0]}\" )\" &> /dev/null && pwd )\"" >> env_wrapper.sh
+echo "export JAVA_HOME=\"\$SCRIPT_DIR/work/jdk${JAVA_HOME_EXT}\"" >> env_wrapper.sh
+echo "export ELAN_HOME=\"\$SCRIPT_DIR/work/.elan\"" >> env_wrapper.sh
 echo "export PATH=\"\$JAVA_HOME/bin:\$ELAN_HOME/bin:\$PATH\"" >> env_wrapper.sh
+echo "# Use the offline mode to prevent lake looking for updates on lean invocation." >> env_wrapper.sh
+echo "export LAKE_OFFLINE=1" >> env_wrapper.sh
+echo "export ELAN_OFFLINE=1" >> env_wrapper.sh
 echo "exec \"\$@\"" >> env_wrapper.sh
 chmod +x env_wrapper.sh
 

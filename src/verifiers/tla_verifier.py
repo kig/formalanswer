@@ -68,9 +68,15 @@ def verify_tla(spec_content: str, module_name: str = "temp") -> VerificationResu
 
     try:
         # Use local JDK
-        java_bin = "work/jdk/bin/java"
-        if not os.path.exists(java_bin):
-            java_bin = "java" # fallback
+        java_candidates = [
+            "work/jdk/bin/java",
+            "work/jdk/Contents/Home/bin/java"
+        ]
+        java_bin = "java" # Default to system java
+        for candidate in java_candidates:
+            if os.path.exists(candidate):
+                java_bin = candidate
+                break
             
         # java -cp tla2tools.jar tlc2.TLC temp.tla
         cmd = [java_bin, "-cp", jar_path, "tlc2.TLC", "-deadlock", tla_file]
