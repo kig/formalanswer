@@ -1,10 +1,11 @@
 #library
 my_prompts
+library_index.json
 
 # Python
 __pycache__/
 *.pyc
-debug/
+/debug/
 venv/
 /work/
 /library/

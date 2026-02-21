@@ -4,9 +4,9 @@ from src.main import FormalReasoningLoop
 from src.proposer.client import Proposer
 
 class TestCombatMock(unittest.TestCase):
-    @patch("src.main.verify_tla")
-    @patch("src.main.verify_lean")
-    @patch("src.main.verify_python")
+    @patch("src.controller.verify_tla")
+    @patch("src.controller.verify_lean")
+    @patch("src.controller.verify_python")
     @patch("src.proposer.client.Proposer") 
     def test_combat_loop(self, MockProposerClass, mock_py, mock_lean, mock_tla):
         # Setup Verifiers to PASS

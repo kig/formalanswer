@@ -95,13 +95,13 @@ Safe == \A n \in Nodes : votes[n] <= 1
         self.assertNotIn("[MODULE: Math.Probabilities]", context)
 
     def test_interface_cleanliness(self):
-        """Ensure implementation details (proofs) are stripped."""
+        """Ensure full module content (including proofs) is retrieved for context learning."""
         query = "probability"
         context = self.retriever.retrieve(query)
         
         self.assertIn("theorem markov_bound", context)
-        # "by sorry" should be stripped by the interface extractor
-        self.assertNotIn(":= by sorry", context) 
+        # We now return full content, so proofs SHOULD be present
+        self.assertIn(":= by sorry", context) 
 
     def test_end_to_end_prompt_construction(self):
         """Simulate the full prompt generation flow."""

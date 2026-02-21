@@ -51,9 +51,9 @@ theorem chebyshev (x : Nat) : x > 0 := by simp""")
         self.assertIn("CONTEXT - AVAILABLE FORMAL TOOLS:", context)
         self.assertIn("[MODULE: Math.Probabilities]", context)
         
-        # Verify Interface Extraction (Proof should be stripped)
+        # Verify Interface Extraction (Full content should be present)
         self.assertIn("theorem chebyshev (x : Nat) : x > 0", context)
-        self.assertNotIn(":= by simp", context)
+        self.assertIn(":= by simp", context)
 
     def test_retrieve_no_match(self):
         retriever = Retriever(modules_dir=self.test_dir, index_file=self.index_file)
