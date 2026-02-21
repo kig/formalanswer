@@ -28,6 +28,6 @@
 ## Priority 3: Consistency Checks (The "Sim-to-Real" Bridge)
 **Goal:** Ensure the Python simulation actually matches the Formal Spec.
 
-- [ ] **Constant Consistency Validator**
-    - [ ] Implement a regex-based extractor to find `CONSTANTS` in TLA+ and global vars in Python.
-    - [ ] specific check: Warning if `MaxRetries = 5` in TLA+ but `MAX_RETRIES = 3` in Python.
+- [x] **Constant Consistency Validator**
+    - [x] Implement a regex-based extractor to find `CONSTANTS` in TLA+ and global vars in Python.
+    - [x] specific check: Warning if `MaxRetries = 5` in TLA+ but `MAX_RETRIES = 3` in Python.

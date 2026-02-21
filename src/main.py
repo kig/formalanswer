@@ -4,19 +4,21 @@ import os
 from src.verifiers.tla_verifier import verify_tla
 from src.verifiers.lean_verifier import verify_lean
 from src.verifiers.python_verifier import verify_python
+from src.verifiers.consistency_checker import check_consistency
 from src.proposer.client import Proposer
 from src.proposer.retriever import Retriever
 from src.library_manager import LibraryManager
 from src.verifiers.common import VerificationResult
 
 class FormalReasoningLoop:
-    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, combat=False, peer_review=False, rap_battle=False, generate_rap=False):
+    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, combat=False, peer_review=False, rap_battle=False, generate_rap=False, force_mode=None):
         self.max_iterations = max_iterations
         self.verbose = verbose
         self.combat = combat
         self.peer_review = peer_review
         self.rap_battle = rap_battle
         self.generate_rap = generate_rap
+        self.force_mode = force_mode
         self.proposer = Proposer(backend=backend, model_name=model, api_key=api_key, base_url=base_url)
         self.retriever = Retriever()
         self.library = LibraryManager()
@@ -72,7 +74,7 @@ class FormalReasoningLoop:
             print(f"\n--- Iteration {i+1} ---")
             
             # Call LLM with Context
-            response = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review)
+            response = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review, force_mode=self.force_mode)
             last_response = response
             
             # Keep existing debug logging for backward compatibility
@@ -178,6 +180,17 @@ class FormalReasoningLoop:
                     f.write(f"=== {kind.upper()} ===\n")
                     for idx, res in enumerate(res_list):
                         f.write(f"Block {idx+1}:\n{str(res)}\n\n")
+
+            # --- CONSISTENCY CHECK ---
+            consistency_warnings = []
+            if current_blocks.get("tla") and current_blocks.get("python"):
+                 tla_full = "\n".join(current_blocks["tla"])
+                 py_full = "\n".join(current_blocks["python"])
+                 consistency_warnings = check_consistency(tla_full, py_full)
+                 if consistency_warnings:
+                     print(f"[CONSISTENCY] Found {len(consistency_warnings)} warnings.")
+                     for w in consistency_warnings:
+                         print(f"  {w}")
 
             # --- PREPARE FEEDBACK & LOGGING ---
             feedback_parts = []
@@ -292,6 +305,9 @@ class FormalReasoningLoop:
             # Join feedback
             if verification_errors:
                 feedback_parts.extend(verification_errors)
+            
+            if consistency_warnings:
+                feedback_parts.append("\n[CONSISTENCY WARNINGS] (Fix mismatch between TLA+ and Python):\n" + "\n".join(consistency_warnings))
 
             if feedback_parts:
                 if peer_feedback_content and not any("PEER REVIEW SUGGESTION" in part for part in feedback_parts):
@@ -334,7 +350,7 @@ class FormalReasoningLoop:
                     "Focus on synthesizing the *verified truths* into a coherent narrative."
                     f"{python_output}"
                 )
-                final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context)
+                final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode)
                 
                 self.library.save_raw_response(task_dir, i + 1, final_analysis, label="final_analysis")
                 
@@ -379,6 +395,7 @@ if __name__ == "__main__":
     parser.add_argument("--combat", action="store_true", help="Enable Adversarial Combat Mode (Red Team review)")
     parser.add_argument("--peer-review", action="store_true", help="Enable Constructive Peer Review Mode")
     parser.add_argument("--rap-battle", action="store_true", help="Enable Logic Rap Battle Mode")
+    parser.add_argument("--mode", choices=["discrete", "probabilistic", "hybrid", "factual"], help="Force a specific reasoning mode")
     parser.add_argument("--max-iterations", type=int, default=5, help="Maximum number of reasoning iterations")
     parser.add_argument("--construct-rap", nargs='?', const='CURRENT', help="Construct rap lyrics from history. Provide directory path for existing task, or flag for current session.")
     
@@ -417,6 +434,7 @@ if __name__ == "__main__":
         combat=args.combat,
         peer_review=args.peer_review,
         rap_battle=args.rap_battle,
-        generate_rap=(args.construct_rap == 'CURRENT')
+        generate_rap=(args.construct_rap == 'CURRENT'),
+        force_mode=args.mode
     )
     frl.run(task)
