@@ -19,9 +19,11 @@ This project uses the **"Lean 4 + TLA+"** stack, representing the 2026 gold stan
     *   Specializes in **Temporal Logic** to verify state transitions, concurrency, and deadlock freedom.
     *   Ensures the *process* of reasoning is safe over time.
 
-3.  **Z3 (The Constraint Optimizer - Optional):**
-    *   Acts as the "Heavy Lifter" for complex combinatorial problems.
-    *   Used when the problem involves difficult optimization or constraint satisfaction tasks better suited for a dedicated solver.
+3.  **Python/JAX/Z3 (The Empirical Grounding):**
+    *   Acts as the "Heavy Lifter" for simulations, optimization, and constraint solving.
+    *   **Z3:** Used for complex constraint satisfaction problems (scheduling, resource allocation).
+    *   **JAX/NumPy:** Used for high-performance Monte Carlo simulations and probabilistic modeling.
+    *   **Role:** Bridges the gap between abstract formalisms and real-world data or messy physics.
 
 ## New Features (Feb 2026)
 
@@ -34,6 +36,30 @@ FormalAnswer has evolved into a self-healing, learning system:
 *   **Incremental Repair:** Retries request patches only for the failing blocks, preserving successful proofs and saving tokens.
 *   **Parallel Verification:** Independent verifiers (Lean, TLA+, Python) run concurrently to reduce latency.
 *   **Rich CLI:** Structured, color-coded output with status spinners and panels for better user experience.
+
+## Reasoning Modes
+
+The system automatically selects (or can be forced to use via `--mode`) one of four reasoning strategies:
+
+1.  **Discrete (`[MODE: DISCRETE]`):**
+    *   **Use Case:** Logic puzzles, mathematical proofs, algorithm verification, and absolute safety claims.
+    *   **Tools:** Relies heavily on **Lean 4** (for deductive correctness) and **TLA+** (for state transitions).
+    *   **Goal:** 100% certainty based on axioms.
+
+2.  **Probabilistic (`[MODE: PROBABILISTIC]`):**
+    *   **Use Case:** Risk assessment, forecasting, simulation, and scenarios with uncertainty.
+    *   **Tools:** Uses **Python/JAX** for Monte Carlo simulations or Bayesian inference. Formal proofs (Lean/TLA+) might be used for model bounds but not for the final answer.
+    *   **Goal:** Expected value optimization or probability distribution estimation.
+
+3.  **Hybrid (`[MODE: HYBRID]`):**
+    *   **Use Case:** Systems reacting to uncertain environments (e.g., a self-driving car controller).
+    *   **Tools:** **TLA+** verifies the control logic (safety), while **Python/Z3** models the environment (physics/constraints).
+    *   **Goal:** "Safe control under uncertain conditions."
+
+4.  **Factual (`[MODE: FACTUAL]`):**
+    *   **Use Case:** Historical facts, definitions, or simple queries where formal modeling is overkill.
+    *   **Tools:** Skips TLA+/Lean. Uses **Python/Z3** only if needed to verify logical consistency of the retrieved facts.
+    *   **Goal:** Accurate retrieval and basic logical consistency.
 
 ## Installation
 
