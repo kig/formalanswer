@@ -43,11 +43,11 @@ def parse_lean_errors(output: str) -> str:
         
     return "\n".join(errors)
 
-def verify_lean(code_content: str) -> VerificationResult:
+def verify_lean(code_content: str, filename: str = "temp.lean") -> VerificationResult:
     """
     Runs the Lean 4 compiler on a .lean file.
     """
-    lean_file = "work/temp.lean"
+    lean_file = f"work/{filename}"
     with open(lean_file, "w") as f:
         f.write(code_content)
     
@@ -55,7 +55,7 @@ def verify_lean(code_content: str) -> VerificationResult:
         # Run lean via lake to access dependencies
         # cwd="work" ensures we are in the lake project root
         result = subprocess.run(
-            ["lake", "env", "lean", "temp.lean"], 
+            ["lake", "env", "lean", filename], 
             cwd="work",
             capture_output=True, 
             text=True, 

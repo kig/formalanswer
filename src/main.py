@@ -6,10 +6,12 @@ from src.verifiers.lean_verifier import verify_lean
 from src.verifiers.python_verifier import verify_python
 from src.verifiers.consistency_checker import check_consistency, check_structure
 from src.verifiers.auto_repair import try_auto_repair
+from src.runner import VerifierRunner
 from src.proposer.client import Proposer
 from src.proposer.retriever import Retriever
 from src.library_manager import LibraryManager
 from src.verifiers.common import VerificationResult
+from src.utils.logger import log_info, log_success, log_error, log_warning, log_section, print_markdown, status, console
 
 class FormalReasoningLoop:
     def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, combat=False, peer_review=False, rap_battle=False, generate_rap=False, force_mode=None):
@@ -22,6 +24,7 @@ class FormalReasoningLoop:
         self.force_mode = force_mode
         self.proposer = Proposer(backend=backend, model_name=model, api_key=api_key, base_url=base_url)
         self.retriever = Retriever()
+        self.runner = VerifierRunner()
         self.library = LibraryManager()
         self.best_blocks = {"tla": None, "lean": None, "python": None}
         if not os.path.exists("debug"):
@@ -56,26 +59,27 @@ class FormalReasoningLoop:
         
         # Initialize session directory
         task_dir = self.library.init_task_dir(task)
-        print(f"[SESSION] Initialized task directory: {task_dir}")
+        log_info(f"[SESSION] Initialized task directory: {task_dir}")
         
         # Save prompt immediately
         self.library.save_prompt(task_dir, task)
         
         # --- Context Retrieval ---
-        print("\n[RETRIEVER] Searching for relevant formal modules...")
+        log_info("[RETRIEVER] Searching for relevant formal modules...")
         context = self.retriever.retrieve(task)
         if context:
-            print("[RETRIEVER] Found relevant modules. Injecting context.")
+            log_success("[RETRIEVER] Found relevant modules. Injecting context.")
             with open(os.path.join(task_dir, "context.txt"), "w") as f:
                 f.write(context)
         else:
-            print("[RETRIEVER] No existing modules found. Starting from scratch.")
+            log_info("[RETRIEVER] No existing modules found. Starting from scratch.")
         
         for i in range(self.max_iterations):
-            print(f"\n--- Iteration {i+1} ---")
+            console.rule(f"Iteration {i+1}")
             
             # Call LLM with Context
-            response = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review, force_mode=self.force_mode)
+            with status("Proposer is thinking..."):
+                response = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review, force_mode=self.force_mode)
             last_response = response
             
             # Keep existing debug logging for backward compatibility
@@ -106,53 +110,15 @@ class FormalReasoningLoop:
                 
                 # Check if identical to best
                 if blocks == self.best_blocks[kind]:
-                    print(f"[{kind.upper()}] Skipping re-verification (identical to last success).")
+                    log_info(f"[{kind.upper()}] Skipping re-verification (identical to last success).")
                     results[kind] = [VerificationResult(True, "Identical to last success")] * len(blocks)
                     return True
 
-                print(f"\n[{kind.upper()}] Verifying {len(blocks)} block(s)...")
-                kind_results = []
-                kind_pass = True
-                
-                for idx, block in enumerate(blocks):
-                    # Check for empty/comment-only blocks
-                    # Strip C-style, Python-style, and TLA-style comments roughly
-                    clean_block = block
-                    clean_block = re.sub(r'//.*', '', clean_block) # C++ style
-                    clean_block = re.sub(r'--.*', '', clean_block) # SQL/Haskell/Lean/Lua style
-                    clean_block = re.sub(r'#.*', '', clean_block)  # Python style
-                    clean_block = re.sub(r'/\*.*?\*/', '', clean_block, flags=re.DOTALL) # Multi-line
-                    clean_block = re.sub(r'\(\*.*?\*\)', '', clean_block, flags=re.DOTALL) # TLA/Pascal/ML style
-                    
-                    if not clean_block.strip():
-                        print(f"  Block {idx+1}: ✓ Passed (Empty/Comment-only omitted)")
-                        kind_results.append(VerificationResult(True, "Empty/Comment-only block treated as Pass"))
-                        continue
-
-                    res = verifier_func(block)
-                    
-                    # --- AUTO-REPAIR (Lean Only) ---
-                    if not res.success and kind == "lean":
-                        repair_success, fixed_code, repaired_res = try_auto_repair(block, res.details)
-                        if repair_success:
-                            print(f"  Block {idx+1}: 🔧 Auto-Repaired!")
-                            # Update the block in the list so it gets saved correctly later if needed
-                            blocks[idx] = fixed_code 
-                            res = repaired_res
-                    
-                    kind_results.append(res)
-                    if res.success:
-                        print(f"  Block {idx+1}: ✓ Passed")
-                        if res.details and kind == "python": # Print stdout for Python
-                             print(f"  --- Output ---\n{res.details}\n  --------------")
-                    else:
-                        print(f"  Block {idx+1}: ✗ Failed: {res.message}")
-                        if self.verbose:
-                            print(res.details)
-                        kind_pass = False
+                # Delegate to parallel runner
+                kind_results = self.runner.verify_parallel(kind, blocks, verifier_func)
                 
                 results[kind] = kind_results
-                return kind_pass
+                return all(r.success for r in kind_results)
 
             # TLA+
             if current_blocks.get("tla"):
@@ -162,7 +128,7 @@ class FormalReasoningLoop:
                     all_pass = False
                     failing_tools.append("tla")
             else:
-                print("[TLA+] No block found. Skipping (assuming Factual/Historical omission).")
+                log_info("[TLA+] No block found. Skipping (assuming Factual/Historical omission).")
 
             # Lean
             if current_blocks.get("lean"):
@@ -172,7 +138,7 @@ class FormalReasoningLoop:
                     all_pass = False
                     failing_tools.append("lean")
             else:
-                print("[LEAN] No block found. Skipping (assuming Factual/Historical omission).")
+                log_info("[LEAN] No block found. Skipping (assuming Factual/Historical omission).")
 
             # Python
             if current_blocks.get("python"):
@@ -200,9 +166,9 @@ class FormalReasoningLoop:
                  consistency_warnings = check_consistency(tla_full, py_full)
                  consistency_warnings.extend(check_structure(tla_full, py_full))
                  if consistency_warnings:
-                     print(f"[CONSISTENCY] Found {len(consistency_warnings)} warnings.")
+                     log_warning(f"[CONSISTENCY] Found {len(consistency_warnings)} warnings.")
                      for w in consistency_warnings:
-                         print(f"  {w}")
+                         log_warning(f"  {w}")
 
             # --- PREPARE FEEDBACK & LOGGING ---
             feedback_parts = []
@@ -227,43 +193,43 @@ class FormalReasoningLoop:
                                         # Safely access spec (handle if list length mismatch, though unlikely)
                                         if idx < len(current_blocks.get("tla", [])):
                                             spec = current_blocks["tla"][idx]
-                                            print("  [TLA+] Explaining counter-example trace...")
+                                            log_info("  [TLA+] Explaining counter-example trace...")
                                             explanation = self.proposer.explain_trace(trace, spec)
                                             error_msg += f"\n[TRACE EXPLANATION]:\n{explanation}\n"
                                 except Exception as e:
-                                    print(f"  [TLA+] Error explaining trace: {e}")
+                                    log_error(f"  [TLA+] Error explaining trace: {e}")
 
                             verification_errors.append(error_msg)
                 verification_errors.append(f"Please fix the issues in the failing components ({', '.join(failing_tools)}).")
 
             # --- COMBAT MODE ---
             if self.combat and current_blocks.get("prose"):
-                print("\n[COMBAT MODE] Initiating Adversarial Review...")
+                log_section("Combat Mode", "Initiating Adversarial Review...", style="red")
                 
                 proof_text = current_blocks.get("prose", "")
                 
                 # 1. The Red Team Attack
-                print("  Red Team is analyzing...")
-                objection = self.proposer.critique(proof_text)
-                print(f"  Objection: {objection[:100]}...")
+                with status("Red Team is analyzing..."):
+                    objection = self.proposer.critique(proof_text)
+                log_info(f"  Objection: {objection[:100]}...")
                 
                 # 2. The Judge's Verdict
-                print("  Judge is deliberating...")
-                score, commentary = self.proposer.judge(proof_text, objection)
-                print(f"  Score: {score}/1.0")
-                print(f"  Commentary: {commentary}")
+                with status("Judge is deliberating..."):
+                    score, commentary = self.proposer.judge(proof_text, objection)
+                log_info(f"  Score: {score}/1.0")
+                log_info(f"  Commentary: {commentary}")
                 
                 # Format log
                 combat_log = f"\n\n=== COMBAT MODE REPORT ===\nOBJECTION:\n{objection}\n\nJUDGE COMMENTARY:\n{commentary}\n\nSCORE: {score}/1.0\n"
                 
                 if score < 0.7:
-                    print("  [COMBAT RESULT] Argument Destroyed.")
+                    log_error("  [COMBAT RESULT] Argument Destroyed.")
                     all_pass = False 
                     combat_log += "RESULT: FAILED (Feedback Triggered)\n"
                     combat_feedback = f"REVIEWER OBJECTION:\n{objection}\n\nJUDGE COMMENTARY:\n{commentary}\n\nYour reasoning was found to be weak (Score: {score}). Please address this objection."
                     feedback_parts.append(combat_feedback)
                 else:
-                    print("  [COMBAT RESULT] Argument Survived.")
+                    log_success("  [COMBAT RESULT] Argument Survived.")
                     combat_log += "RESULT: PASSED\n"
 
             # --- PEER REVIEW MODE ---
@@ -353,11 +319,9 @@ class FormalReasoningLoop:
 
             # --- Success Handler ---
             if all_pass:
-                print("\n[SUCCESS] All verifiers passed!")
+                log_success("All verifiers passed!")
                 
                 # --- Final Analysis Step ---
-                print("\nGenerating Verified Prose Answer...")
-                
                 # Collect Python output
                 python_output = ""
                 if results.get("python"):
@@ -379,7 +343,9 @@ class FormalReasoningLoop:
                     "Focus on synthesizing the *verified truths* into a coherent narrative."
                     f"{python_output}"
                 )
-                final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode)
+                
+                with status("Generating Verified Prose Answer..."):
+                    final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode)
                 
                 self.library.save_raw_response(task_dir, i + 1, final_analysis, label="final_analysis")
                 
@@ -390,9 +356,7 @@ class FormalReasoningLoop:
 
                 self.library.save_proofs(task_dir, current_blocks, original_prompt=task)
                 
-                print("\n========== FINAL LOGICAL ANALYSIS ==========\n")
-                print(final_analysis)
-                print("\n============================================")
+                log_section("FINAL LOGICAL ANALYSIS", final_analysis, style="green")
                 
                 if self.rap_battle or self.generate_rap:
                     self.finalize_rap_battle(task_dir)
@@ -400,12 +364,10 @@ class FormalReasoningLoop:
                 return True, final_analysis
             
             # Retry
-            print("\n[RETRY] Sending feedback to LLM...")
+            log_warning("Sending feedback to LLM...")
 
-        print("\n[FAILURE] Max iterations reached.")
-        print("\n========== LATEST ATTEMPT (UNVERIFIED) ==========\n")
-        print(last_response)
-        print("\n=================================================")
+        log_error("Max iterations reached.")
+        log_section("LATEST ATTEMPT (UNVERIFIED)", str(last_response), style="red")
         
         if self.rap_battle or self.generate_rap:
             self.finalize_rap_battle(task_dir)

@@ -3,19 +3,19 @@ import sys
 import os
 from .common import VerificationResult
 
-def verify_python(script_content: str) -> VerificationResult:
+def verify_python(script_content: str, filename: str = "temp_script.py") -> VerificationResult:
     """
     Executes a Python script (Z3 constraints or Monte Carlo simulation) and returns the verification result.
     
     A return code of 0 implies success (verification passed).
     A non-zero return code (e.g., assertion error, exception) implies failure.
     
-    The script is executed in a temporary file: work/temp_script.py
+    The script is executed in a temporary file: work/filename
     """
     if not os.path.exists("work"):
         os.makedirs("work")
         
-    temp_file = "work/temp_script.py"
+    temp_file = f"work/{filename}"
     with open(temp_file, "w") as f:
         f.write(script_content)
     
