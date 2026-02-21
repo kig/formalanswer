@@ -17,7 +17,7 @@ This document tracks the implementation of the advanced FormalAnswer capabilitie
 - [x] **2.2 Contract Generator** (`src/skills/contract_generator.py`)
 - [x] **2.3 Skill Verifier / Injector** (`src/verifiers/skill_verifier.py`)
 
-## Phase 3: Advanced Formal Extensions (The "Specialists") [NEXT]
+## Phase 3: Advanced Formal Extensions (The "Specialists") [PENDING]
 **Goal:** Add specific high-level reasoning capabilities to augment the system.
 
 - [ ] **3.1 Causal Verifier** (`src/verifiers/causal_verifier.py`)
@@ -37,6 +37,16 @@ This document tracks the implementation of the advanced FormalAnswer capabilitie
         - **Static:** Use an LLM-as-Verifier to critique code against TLA+ invariants.
         - **Dynamic:** Generate property-based tests (Hypothesis/CrossHair) from the TLA+ spec and run them against the Python code.
 
-## Phase 4: User Experience & Information Architecture [IN PROGRESS]
+## Phase 4: User Experience & Information Architecture [COMPLETE]
 - [x] **4.1 Prompt Preservation:** Save original prompts to `library/.../prompt.txt`.
 - [x] **4.2 Answer Layout:** Refine the final output to be an "Executive Summary" rather than a raw dump of the reasoning process.
+
+## Phase 5: Self-Healing & Robustness (The "Governor") [COMPLETE]
+**Goal:** Increase reliability and usability through automated repair and improved feedback loops.
+
+- [x] **5.1 Auto-Repair:** Automatically swap weak tactics (`simp`) for stronger ones (`aesop`, `omega`) on failure.
+- [x] **5.2 Knowledge Reuse (RAG):** Index and retrieve successful proofs from `library/` to seed context.
+- [x] **5.3 Consistency Checks:** Validate variable/action alignment between TLA+ specs and Python simulations.
+- [x] **5.4 Trace Explanation:** Use LLM to translate TLA+ counter-examples into natural language explanations.
+- [x] **5.5 Parallel Verification:** Run verifiers concurrently for reduced latency.
+- [x] **5.6 Rich CLI:** Structured output with panels, status spinners, and syntax highlighting.
