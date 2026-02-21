@@ -53,8 +53,8 @@ def verify_tla(spec_content: str, module_name: str = "temp") -> VerificationResu
     if not os.path.exists(jar_path):
         return VerificationResult(False, "tla2tools.jar not found. Run setup_manager first.")
 
-    # Force the module name to be 'temp' to match the filename
-    spec_content = re.sub(r"MODULE \w+", "MODULE temp", spec_content, count=1)
+    # Force the module name to match the filename (TLC requirement)
+    spec_content = re.sub(r"MODULE \w+", f"MODULE {module_name}", spec_content, count=1)
     
     with open(tla_file, "w") as f:
         f.write(spec_content)
