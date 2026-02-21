@@ -1,15 +1,18 @@
+## Priority 11: Architectural Refactoring
+**Goal:** Improve code maintainability by splitting the monolithic `main.py` into specialized components.
 
-## Priority 9: Parallel Verification
-**Goal:** Reduce latency by running independent verifiers (Lean, TLA+, Python) concurrently.
+- [x] **Extract UI Logic**
+    - [x] Create `src/ui/cli.py` to handle `rich` output, argument parsing, and user interaction.
+    - [x] Move `finalize_rap_battle` and feedback construction to UI module.
+- [x] **Extract Controller Logic**
+    - [x] Create `src/controller.py` to house the `FormalReasoningLoop` class.
+    - [x] Ensure clear separation of concerns: Controller manages state/logic, UI manages display.
 
-- [x] **Refactor `verify_blocks`**
-    - [x] Create a `VerifierRunner` class or helper that accepts a list of tasks.
-    - [x] Use `concurrent.futures.ThreadPoolExecutor` to run `verify_tla`, `verify_lean`, and `verify_python` in parallel.
-    - [x] Handle result aggregation and error reporting thread-safely.
+## Priority 12: Persistent Lean Server
+**Goal:** Drastically reduce verification latency by keeping the Lean compiler process alive.
 
-## Priority 10: Rich CLI Output
-**Goal:** Improve user experience with structured logging and progress bars.
-
-- [x] **Integrate `rich`**
-    - [x] Add `rich` to `install_deps.sh`.
-    - [x] Replace `print()` calls in `main.py` with `console.print()`, using panels for feedback and status spinners for long-running tasks.
+- [ ] **Implement `LeanServer`**
+    - [ ] Create `src/verifiers/lean_server.py`.
+    - [ ] Use `subprocess.Popen` to manage `lean --server` or a custom REPL wrapper.
+    - [ ] Implement `verify(code)` that sends code to the persistent process and parses JSON/text response.
+    - [ ] Handle timeouts and restarts.
