@@ -117,5 +117,26 @@ example : 1=1
         self.assertEqual(response, "Mock Response")
         self.proposer.chat.send_message.assert_called_once()
 
+    def test_propose_rap_battle(self):
+        """Test that rap_battle flag adds context prefix."""
+        self.proposer.chat.send_message.return_value.text = "Mock Rap Response"
+        self.proposer.propose("Test Task", rap_battle=True)
+        
+        # Check call arguments
+        args, _ = self.proposer.chat.send_message.call_args
+        prompt = args[0]
+        self.assertIn("Logic Rap Battle", prompt)
+        self.assertIn("RAP VERSE", prompt)
+
+    def test_propose_repair_rap_battle(self):
+        """Test that rap_battle flag is preserved in repair loop."""
+        self.proposer.chat.send_message.return_value.text = "Mock Fixed Rap Response"
+        self.proposer.propose("Test Task", feedback="Error in Lean", rap_battle=True)
+        
+        args, _ = self.proposer.chat.send_message.call_args
+        prompt = args[0]
+        self.assertIn("Logic Rap Battle", prompt)
+        self.assertIn("LOGIC BATTLE: REPAIR PROTOCOL", prompt)
+
 if __name__ == "__main__":
     unittest.main()

@@ -280,6 +280,17 @@ class FormalReasoningLoop:
                 with status("Generating Verified Prose Answer..."):
                     final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode)
                 
+                # Append formal proofs to final analysis for complete visibility
+                formal_proofs_section = "\n\n# Verified Formal Proofs\n"
+                if self.best_blocks.get("tla"):
+                    formal_proofs_section += "\n## TLA+ Specification\n```tla\n" + "\n\n".join(self.best_blocks["tla"]) + "\n```\n"
+                if self.best_blocks.get("lean"):
+                    formal_proofs_section += "\n## Lean 4 Proof\n```lean\n" + "\n\n".join(self.best_blocks["lean"]) + "\n```\n"
+                if self.best_blocks.get("python"):
+                    formal_proofs_section += "\n## Python/Z3 Script\n```python\n" + "\n\n".join(self.best_blocks["python"]) + "\n```\n"
+                
+                final_analysis += formal_proofs_section
+
                 self.library.save_raw_response(task_dir, i + 1, final_analysis, label="final_analysis")
                 
                 if current_blocks.get("prose"):

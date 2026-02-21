@@ -4,6 +4,7 @@ from google import genai
 from dotenv import load_dotenv
 from .prompts import SYSTEM_PROMPT, format_user_prompt
 from .repair_prompt import REPAIR_PROMPT
+from .rap_repair_prompt import RAP_REPAIR_PROMPT
 
 try:
     from openai import OpenAI
@@ -94,8 +95,8 @@ class Proposer:
 
         if self.backend == "gemini":
             if feedback:
-                persona = ""
-                prompt = REPAIR_PROMPT.format(feedback=feedback)
+                repair_tmpl = RAP_REPAIR_PROMPT if rap_battle else REPAIR_PROMPT
+                prompt = f"{context_prefix}{repair_tmpl.format(feedback=feedback)}"
             else:
                 prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"
             
@@ -108,7 +109,8 @@ class Proposer:
 
         elif self.backend in ["openai", "ollama"]:
             if feedback:
-                prompt = REPAIR_PROMPT.format(feedback=feedback)
+                repair_tmpl = RAP_REPAIR_PROMPT if rap_battle else REPAIR_PROMPT
+                prompt = f"{context_prefix}{repair_tmpl.format(feedback=feedback)}"
                 self.history.append({"role": "user", "content": prompt})
             else:
                 prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"

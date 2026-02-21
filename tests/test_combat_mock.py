@@ -48,7 +48,10 @@ class TestCombatMock(unittest.TestCase):
         
         # Assertions
         self.assertTrue(success)
-        self.assertEqual(answer, "Final Answer")
+        self.assertIn("Final Answer", answer)
+        self.assertIn("# Verified Formal Proofs", answer)
+        self.assertIn("## TLA+ Specification", answer)
+        self.assertIn("## Lean 4 Proof", answer)
         
         # Verify Critique was called twice
         self.assertEqual(mock_proposer.critique.call_count, 2)
