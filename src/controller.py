@@ -12,9 +12,10 @@ from src.verifiers.common import VerificationResult
 from src.utils.logger import log_info, log_success, log_error, log_warning, log_section, status, console
 
 class FormalReasoningLoop:
-    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, combat=False, peer_review=False, rap_battle=False, generate_rap=False, force_mode=None):
+    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, show_prompts=False, combat=False, peer_review=False, rap_battle=False, generate_rap=False, force_mode=None):
         self.max_iterations = max_iterations
         self.verbose = verbose
+        self.show_prompts = show_prompts
         self.combat = combat
         self.peer_review = peer_review
         self.rap_battle = rap_battle
@@ -82,7 +83,26 @@ class FormalReasoningLoop:
             
             # Call LLM with Context
             with status("Proposer is thinking..."):
+                if self.show_prompts:
+                    # Construct what the prompt would be (Gemini specific logic here for simplicity)
+                    # For a more robust solution, Proposer could return the prompt it used.
+                    from src.proposer.prompts import format_user_prompt
+                    from src.proposer.repair_prompt import REPAIR_PROMPT
+                    from src.proposer.rap_repair_prompt import RAP_REPAIR_PROMPT
+                    
+                    if feedback:
+                        repair_tmpl = RAP_REPAIR_PROMPT if self.rap_battle else REPAIR_PROMPT
+                        display_prompt = repair_tmpl.format(feedback=feedback)
+                    else:
+                        display_prompt = format_user_prompt(task, context, force_mode=self.force_mode)
+                    
+                    log_section("OUTGOING PROMPT", display_prompt, style="cyan")
+
                 response = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review, force_mode=self.force_mode)
+            
+            if self.verbose:
+                log_section("RAW LLM RESPONSE", response, style="dim")
+                
             last_response = response
             
             # Keep existing debug logging for backward compatibility
@@ -218,8 +238,8 @@ class FormalReasoningLoop:
                 # 2. The Judge's Verdict
                 with status("Judge is deliberating..."):
                     score, commentary = self.proposer.judge(proof_text, objection)
-                log_info(f"  Score: {score}/1.0")
-                log_info(f"  Commentary: {commentary}")
+                
+                log_section("JUDGE VERDICT", f"**Score:** {score}/1.0\n\n**Commentary:**\n{commentary}", style="yellow")
                 
                 # Format log
                 combat_log = f"\\n\\n=== COMBAT MODE REPORT ===\\nOBJECTION:\\n{objection}\\n\\nJUDGE COMMENTARY:\\n{commentary}\\n\\nSCORE: {score}/1.0\\n"
