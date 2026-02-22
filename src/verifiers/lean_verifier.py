@@ -2,8 +2,10 @@ import subprocess
 import os
 import re
 from .common import VerificationResult
+from .lean_server import get_lean_server
 
 def parse_lean_errors(output: str) -> str:
+    # ... (existing parse_lean_errors remains same) ...
     """
     Parses raw Lean stderr output into a concise, actionable format for the LLM.
     Extracts: Line number, Column number, Error message.
@@ -46,7 +48,20 @@ def parse_lean_errors(output: str) -> str:
 def verify_lean(code_content: str, filename: str = "temp.lean") -> VerificationResult:
     """
     Runs the Lean 4 compiler on a .lean file.
+    Uses persistent LeanServer if possible, fallbacks to lake env lean.
     """
+    if os.environ.get("DISABLE_LEAN_SERVER") != "1":
+        try:
+            server = get_lean_server()
+            result = server.verify_snippet(code_content)
+            # If server passed, or failed with specific logical errors, trust it.
+            # If it's a server-level failure, we fallback.
+            if result.success or "failed" in result.message:
+                return result
+        except Exception as e:
+            print(f"Lean Server failed, falling back to subprocess: {e}")
+
+    # Fallback to subprocess execution
     lean_file = f"work/{filename}"
     with open(lean_file, "w") as f:
         f.write(code_content)
