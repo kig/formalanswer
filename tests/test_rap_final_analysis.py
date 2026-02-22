@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from src.main import FormalReasoningLoop
+from src.proposer.client import ProposerResponse, Usage
 
 class TestRapFinalAnalysis(unittest.TestCase):
     @patch("src.controller.verify_tla")
@@ -15,10 +16,12 @@ class TestRapFinalAnalysis(unittest.TestCase):
         
         # Setup Proposer Mock
         mock_proposer = MockProposerClass.return_value
+        mock_proposer.model_name = "mock"
+        mock_proposer.get_usage.return_value = Usage(0, 0)
         
         mock_proposer.propose.side_effect = [
-            "Rap Proposal", # Iteration 1
-            "Final Rap Answer" # Final Analysis
+            ProposerResponse("Rap Proposal", Usage(10, 10)), 
+            ProposerResponse("Final Rap Answer", Usage(10, 10))
         ]
         
         mock_proposer.extract_code.return_value = {
@@ -30,6 +33,8 @@ class TestRapFinalAnalysis(unittest.TestCase):
         # Mock other proposer methods to return strings
         mock_proposer.construct_final_rap.return_value = "Final Track"
         mock_proposer.produce_song_gen_lyrics.return_value = "Song Gen Format"
+        mock_proposer.critique.return_value = "Mock Objection"
+        mock_proposer.judge.return_value = (1.0, "Mock Commentary")
         
         # Initialize Loop with rap_battle=True
         loop = FormalReasoningLoop(max_iterations=1, rap_battle=True)

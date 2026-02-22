@@ -19,5 +19,26 @@
     "input_tokens": 200,
     "output_tokens": 400,
     "estimated_cost_usd": 0.0014
+  },
+  {
+    "timestamp": "2026-02-22T16:45:40.124043",
+    "task": "Test Task",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_cost_usd": 0.0
+  },
+  {
+    "timestamp": "2026-02-22T16:46:02.165466",
+    "task": "Test Task",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_cost_usd": 0.0
+  },
+  {
+    "timestamp": "2026-02-22T16:46:02.685069",
+    "task": "Test Rap Task",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_cost_usd": 0.0
   }
 ]

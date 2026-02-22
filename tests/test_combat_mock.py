@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from src.main import FormalReasoningLoop
-from src.proposer.client import Proposer
+from src.proposer.client import Proposer, ProposerResponse, Usage
 
 class TestCombatMock(unittest.TestCase):
     @patch("src.controller.verify_tla")
@@ -16,13 +16,15 @@ class TestCombatMock(unittest.TestCase):
         
         # Setup Proposer Mock
         mock_proposer = MockProposerClass.return_value
+        mock_proposer.model_name = "mock"
+        mock_proposer.get_usage.return_value = Usage(0, 0)
         
         # Iteration 1: Propose valid proofs
         # Iteration 2: Propose refined proofs
         mock_proposer.propose.side_effect = [
-            "Proof 1 (Weak)", # Iteration 1 Proposal
-            "Proof 2 (Strong)", # Iteration 2 Proposal (after combat fail)
-            "Final Answer" # Final Analysis
+            ProposerResponse("Proof 1 (Weak)", Usage(10, 10)), 
+            ProposerResponse("Proof 2 (Strong)", Usage(10, 10)),
+            ProposerResponse("Final Answer", Usage(10, 10))
         ]
         
         mock_proposer.extract_code.side_effect = [

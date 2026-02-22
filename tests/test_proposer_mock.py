@@ -114,7 +114,7 @@ example : 1=1
         """Test that propose calls the chat method."""
         self.proposer.chat.send_message.return_value.text = "Mock Response"
         response = self.proposer.propose("Test Task")
-        self.assertEqual(response, "Mock Response")
+        self.assertEqual(response.content, "Mock Response")
         self.proposer.chat.send_message.assert_called_once()
 
     def test_propose_rap_battle(self):
