@@ -1,6 +1,6 @@
 # FormalAnswer Showcase: VC Investment Logic Battle
 
-[**🎧 Listen to the Logic Rap Battle (MP3)**](formalanswer_rap_battle.mp3)
+[**🎧 Listen to the Logic Rap Battle (MP3)**](https://github.com/kig/formalanswer/raw/main/examples/formalanswer_rap_battle.mp3)
 
 This example demonstrates **FormalAnswer** in a complex, probabilistic reasoning scenario: **Evaluating which AI startup a Venture Capitalist should fund.**
 
