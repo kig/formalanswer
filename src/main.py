@@ -6,7 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Formal Reasoning Loop")
     parser.add_argument("task", nargs="*", help="The natural language query/task (can be multiple strings)")
     parser.add_argument("--prompt-file", help="Load the prompt from a file.")
-    parser.add_argument("--backend", default="gemini", choices=["gemini", "openai", "ollama", "mock"], help="LLM backend to use")
+    parser.add_argument("--backend", default="gemini", choices=["gemini", "openai", "ollama", "mock", "gemini-cli"], help="LLM backend to use")
     parser.add_argument("--model", help="Specific model name (e.g., gpt-4, gemini-2.5-flash, llama3)")
     parser.add_argument("--base-url", help="Base URL for OpenAI/Ollama API")
     parser.add_argument("--api-key", help="API Key (overrides env vars)")
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--peer-review", action="store_true", help="Enable Constructive Peer Review Mode")
     parser.add_argument("--rap-battle", action="store_true", help="Enable Logic Rap Battle Mode")
     parser.add_argument("--mode", choices=["discrete", "probabilistic", "hybrid", "factual"], help="Force a specific reasoning mode")
-    parser.add_argument("--max-iterations", type=int, default=5, help="Maximum number of reasoning iterations")
+    parser.add_argument("--max-iterations", type=int, help="Maximum number of reasoning iterations")
     parser.add_argument("--construct-rap", nargs='?', const='CURRENT', help="Construct rap lyrics from history. Provide directory path for existing task, or flag for current session.")
     parser.add_argument("--tier", choices=["standard", "pro", "enterprise"], default="pro", help="Reasoning assurance tier (affects rigor and cost)")
     

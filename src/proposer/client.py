@@ -1,5 +1,8 @@
 import re
 import os
+import subprocess
+import json
+import time
 from google import genai
 from dotenv import load_dotenv
 from .prompts import SYSTEM_PROMPT, format_user_prompt, RAP_BATTLE_RULES, ADVERSARIAL_COMBAT_RULES, PEER_REVIEW_RULES
@@ -28,7 +31,7 @@ class Proposer:
     def __init__(self, backend="gemini", model_name=None, api_key=None, base_url=None):
         self.backend = backend.lower()
         self.model_name = model_name
-        self.history = []  # For stateless backends like OpenAI/Ollama
+        self.history = []  # For stateless backends like OpenAI/Ollama/Gemini-CLI
         self.usage_input = 0
         self.usage_output = 0
 
@@ -65,11 +68,58 @@ class Proposer:
             # Initialize history with system prompt
             self.history = [{"role": "system", "content": SYSTEM_PROMPT}]
             
+        elif self.backend == "gemini-cli":
+            print("[PROPOSER] Using GEMINI-CLI backend (Dogfooding).")
+            self.model_name = self.model_name or "default"
+            self.history = [{"role": "system", "content": SYSTEM_PROMPT}]
+            
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
 
     def get_usage(self) -> Usage:
         return Usage(self.usage_input, self.usage_output)
+
+    def _call_gemini_cli(self, prompt: str) -> ProposerResponse:
+        """
+        Calls the 'gemini' command line tool and parses JSON output.
+        """
+        cmd = [
+            "gemini", 
+            "-p", prompt, 
+            "--output-format", "json", 
+            "--raw-output", 
+            "--accept-raw-output-risk"
+        ]
+        if self.model_name and self.model_name != "default":
+            cmd.extend(["-m", self.model_name])
+            
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            output = result.stdout
+            json_start = output.find('{')
+            if json_start == -1:
+                print(f"Gemini-CLI Error: No JSON found in output: {output}")
+                return ProposerResponse("Error", Usage(0, 0))
+            
+            data = json.loads(output[json_start:])
+            content = data.get("response", "")
+            
+            total_in = 0
+            total_out = 0
+            stats = data.get("stats", {}).get("models", {})
+            for m_stats in stats.values():
+                tokens = m_stats.get("tokens", {})
+                total_in += tokens.get("input", 0)
+                total_out += tokens.get("candidates", 0)
+            
+            usage = Usage(total_in, total_out)
+            self.usage_input += total_in
+            self.usage_output += total_out
+            return ProposerResponse(content, usage)
+            
+        except Exception as e:
+            print(f"Gemini-CLI execution error: {e}")
+            return ProposerResponse("Error", Usage(0, 0))
 
     def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False, force_mode=None, tier="pro") -> ProposerResponse:
         """
@@ -116,6 +166,20 @@ class Proposer:
                 print(f"Gemini API Error: {e}")
                 return ProposerResponse(self._get_mock_response(), Usage(0, 0))
 
+        elif self.backend == "gemini-cli":
+            if feedback:
+                repair_tmpl = RAP_REPAIR_PROMPT if rap_battle else REPAIR_PROMPT
+                prompt = f"{context_prefix}{tier_prefix}{repair_tmpl.format(feedback=feedback)}"
+                self.history.append({"role": "user", "content": prompt})
+            else:
+                prompt = format_user_prompt(task, context, force_mode=force_mode, context_prefix=context_prefix, tier_prefix=tier_prefix)
+                self.history.append({"role": "user", "content": prompt})
+            
+            full_prompt = "\n\n".join([f"{m['role'].upper()}: {m['content']}" for m in self.history])
+            resp = self._call_gemini_cli(full_prompt)
+            self.history.append({"role": "assistant", "content": resp.content})
+            return resp
+
         elif self.backend in ["openai", "ollama"]:
             if feedback:
                 repair_tmpl = RAP_REPAIR_PROMPT if rap_battle else REPAIR_PROMPT
@@ -145,30 +209,22 @@ class Proposer:
                 return ProposerResponse(self._get_mock_response(), Usage(0, 0))
 
     def explain_trace(self, trace_text, spec_code):
-        """
-        Interprets a TLA+ counter-example trace for the user/LLM.
-        """
         prompt = (
             "You are a TLA+ Expert Debugger.\n"
             "Below is a TLA+ specification and a counter-example trace produced by TLC.\n"
             "Analyze the trace step-by-step and explain logically WHY the invariant was violated.\n"
             "Keep it concise (3-4 sentences).\n\n"
-            f"SPECIFICATION:\n{spec_code[:2000]}...\n\n" # Truncate spec if needed
+            f"SPECIFICATION:\n{spec_code[:2000]}...\n\n" 
             f"TRACE:\n{trace_text}\n\n"
             "OUTPUT FORMAT:\n"
             "EXPLANATION: [Your explanation]"
         )
         response = self._call_stateless(prompt)
-        
-        # Strip "EXPLANATION: " prefix if present
         if response.content.startswith("EXPLANATION:"):
             return response.content[12:].strip()
         return response.content
 
     def rap_battle(self, proof_text):
-        """
-        Rap Battle Review: Stateless call to find flaws with style.
-        """
         prompt = (
             "You are a Legendary Logic Battle Rapper. Your goal is to destroy the following argument with facts and logic.\n"
             "Drop a short verse (4-8 bars) exposing the flaws, then list the technical objections.\n"
@@ -186,10 +242,6 @@ class Proposer:
         return self._call_stateless(prompt).content
 
     def rap_judge(self, proof_text, objection):
-        """
-        Scoring: Evaluates who won the bar using two independent calls.
-        """
-        # Call 1: Rate the Argument
         prompt_arg = (
             "You are a Logic Rap Battle Judge. Rate the ARGUMENT below.\n"
             f"ARGUMENT: {proof_text[:2000]}...\n\n"
@@ -202,7 +254,6 @@ class Proposer:
         )
         resp_arg = self._call_stateless(prompt_arg).content
         
-        # Call 2: Rate the Roast
         prompt_roast = (
             "You are a Logic Rap Battle Judge. Rate the ROAST below.\n"
             f"CONTEXT (THE ARGUMENT BEING ROASTED): {proof_text[:2000]}...\n"
@@ -224,13 +275,11 @@ class Proposer:
         roast_comm = ""
 
         try:
-            # Parse Argument Score
             m_a = re.search(r"SCORE:\s*(\d+)", resp_arg, re.IGNORECASE)
             if m_a: arg_score = int(m_a.group(1))
             m_ac = re.search(r"COMMENTARY:\s*(.*)", resp_arg, re.IGNORECASE | re.DOTALL)
             if m_ac: arg_comm = m_ac.group(1).strip()
 
-            # Parse Roast Score
             m_r = re.search(r"SCORE:\s*(\d+)", resp_roast, re.IGNORECASE)
             if m_r: roast_score = int(m_r.group(1))
             m_rc = re.search(r"COMMENTARY:\s*(.*)", resp_roast, re.IGNORECASE | re.DOTALL)
@@ -243,9 +292,6 @@ class Proposer:
              return 0.5, "Error parsing independent judge responses."
 
     def critique(self, proof_text):
-        """
-        Adversarial Review: Stateless call to find flaws.
-        """
         prompt = (
             "You are a 'Red Team' adversary. Your goal is to provide a STRICT BUT FAIR critique.\n"
             "Do NOT invent flaws if the argument is solid. However, you must rigorously check for:\n"
@@ -263,10 +309,6 @@ class Proposer:
         return self._call_stateless(prompt).content
 
     def judge(self, proof_text, objection):
-        """
-        Scoring: Evaluates if the proof survives the objection using two independent calls.
-        """
-        # Call 1: Rate the Argument
         prompt_arg = (
             "You are an impartial Judge. Rate the ARGUMENT below.\n"
             f"ARGUMENT: {proof_text[:2000]}...\n\n"
@@ -279,7 +321,6 @@ class Proposer:
         )
         resp_arg = self._call_stateless(prompt_arg).content
         
-        # Call 2: Rate the Objection
         prompt_obj = (
             "You are an impartial Judge. Rate the OBJECTION below.\n"
             f"CONTEXT (THE ARGUMENT BEING CRITIQUED): {proof_text[:2000]}...\n"
@@ -300,13 +341,11 @@ class Proposer:
         obj_comm = ""
 
         try:
-            # Parse Argument Score
             m_a = re.search(r"SCORE:\s*(\d+)", resp_arg, re.IGNORECASE)
             if m_a: arg_score = int(m_a.group(1))
             m_ac = re.search(r"COMMENTARY:\s*(.*)", resp_arg, re.IGNORECASE | re.DOTALL)
             if m_ac: arg_comm = m_ac.group(1).strip()
 
-            # Parse Objection Score
             m_o = re.search(r"SCORE:\s*(\d+)", resp_obj, re.IGNORECASE)
             if m_o: obj_score = int(m_o.group(1))
             m_oc = re.search(r"COMMENTARY:\s*(.*)", resp_obj, re.IGNORECASE | re.DOTALL)
@@ -319,9 +358,6 @@ class Proposer:
              return 0.5, "Error parsing independent judge responses."
 
     def peer_review(self, proof_text):
-        """
-        Peer Review: Stateless call to find improvements politely.
-        """
         prompt = (
             "You are a 'Helpful Colleague' and expert reviewer. Your goal is to help improve the following argument.\n"
             "Please review the text for:\n"
@@ -338,9 +374,6 @@ class Proposer:
         return self._call_stateless(prompt).content
 
     def peer_review_judge(self, proof_text, suggestion):
-        """
-        Scoring: Evaluates if the suggestion is critical for the argument's validity.
-        """
         prompt = (
             "You are an impartial Editor.\n"
             f"ARGUMENT: {proof_text[:2000]}...\n"
@@ -354,7 +387,6 @@ class Proposer:
         )
         response = self._call_stateless(prompt).content
         try:
-            # Extract float
             match = re.search(r"(\d+(\.\d+)?)", response)
             if match:
                 return float(match.group(1))
@@ -363,9 +395,6 @@ class Proposer:
             return 0.5
 
     def construct_final_rap(self, raw_history):
-        """
-        Compiles the entire history of the battle into a final track.
-        """
         prompt = (
             "You are a Legendary Logic Battle Rapper and Producer.\n"
             "Below is the raw history of a Formal Logic Rap Battle (Verses, Roasts, and Rebuttals).\n"
@@ -382,9 +411,6 @@ class Proposer:
         return self._call_stateless(prompt).content
 
     def produce_song_gen_lyrics(self, rap_script):
-        """
-        Formats the rap script into Tencent SongGeneration compatible format.
-        """
         prompt = (
             "You are a Lyrics Formatter. Convert the following Rap Battle Script into Tencent SongGeneration format.\n"
             "FORMAT RULES:\n"
@@ -405,9 +431,12 @@ class Proposer:
             self.usage_input += 10
             self.usage_output += 20
             return ProposerResponse("Mock Response", Usage(10, 20))
+        
+        if self.backend == "gemini-cli":
+            return self._call_gemini_cli(prompt)
+
         if self.backend == "gemini":
             try:
-                # Use client.models.generate_content for stateless
                 response = self.client.models.generate_content(
                     model=self.model_name,
                     contents=prompt
@@ -441,17 +470,12 @@ class Proposer:
         return ProposerResponse("Error", Usage(0, 0))
 
     def _get_mock_response(self):
-        # A robust mock response demonstrating the Probabilistic/Predictive architecture
         return """
 # Mode Selection
 [MODE: DISCRETE]
 
 # Critique & Refinement
 - **Critique:** Assumption 1
-- **Critique:** Assumption 2
-- **Critique:** Assumption 3
-- **Critique:** Assumption 4
-- **Critique:** Assumption 5
 - **Refinement:** Refined answer.
 
 # Rationale & Shared Constants
@@ -491,17 +515,10 @@ assert 1 + 1 == 2
 """
 
     def extract_code(self, response):
-        """
-        Extracts ALL TLA+, Z3 (Python), and Lean blocks from the LLM response.
-        Returns LISTS of strings for each language.
-        """
-        # Find all matches using re.findall
         tla_matches = re.findall(r"```tla\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
-        # Match python OR z3 blocks
         python_matches = re.findall(r"```(?:python|z3)\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
         lean_matches = re.findall(r"```lean\s*\n?(.*?)\n?\s*```", response, re.DOTALL)
 
-        # Remove entire code blocks from prose
         prose = response
         prose = re.sub(r"```tla\s*.*?\s*```", "", prose, flags=re.DOTALL)
         prose = re.sub(r"```(?:python|z3)\s*.*?\s*```", "", prose, flags=re.DOTALL)
