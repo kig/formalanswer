@@ -46,7 +46,7 @@ ProofLoop isn't just a solver; it's a fighter. Finding a flaw in a proof is easi
 
 ```
 
-*🎧 [Listen to an Adversarial Reasoning Loop here!*](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/proofloop/main/examples/proofloop_rap_battle.mp3)
+🎧 [Listen to an Adversarial Reasoning Loop here!](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/formalanswer/main/examples/proofloop_rap_battle.mp3)
 
 ---
 
