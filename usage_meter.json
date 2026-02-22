@@ -1,0 +1,23 @@
+[
+  {
+    "timestamp": "2026-02-22T16:37:50.222531",
+    "task": "Test Metering",
+    "input_tokens": 200,
+    "output_tokens": 400,
+    "estimated_cost_usd": 0.0014
+  },
+  {
+    "timestamp": "2026-02-22T16:40:27.251624",
+    "task": "Test Tiering",
+    "input_tokens": 200,
+    "output_tokens": 400,
+    "estimated_cost_usd": 0.0014
+  },
+  {
+    "timestamp": "2026-02-22T16:44:28.410465",
+    "task": "Business Model Final Test",
+    "input_tokens": 200,
+    "output_tokens": 400,
+    "estimated_cost_usd": 0.0014
+  }
+]

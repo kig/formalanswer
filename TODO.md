@@ -1,21 +1,21 @@
 # FormalAnswer Roadmap
 
 ## Completed
-- [x] **Priority 1-11** (Reliability, Knowledge Reuse, Consistency, Tactics, Auto-Repair, Incremental Repair, Structural Alignment, Trace Explanation, Documentation, Parallel Verification, Rich CLI, Refactoring)
+- [x] **Priority 1-13** (Reliability, Knowledge Reuse, Consistency, Tactics, Auto-Repair, Incremental Repair, Structural Alignment, Trace Explanation, Documentation, Parallel Verification, Rich CLI, Refactoring, Formal Specification)
 
-## Priority 13: Formal Codebase Specification (The "Self-Reference" Phase)
-**Goal:** Create a mathematically verified design of FormalAnswer itself to ensure maintainability and correctness.
+## Priority 14: Business Model & Sustainability
+**Goal:** Transition FormalAnswer from a research tool to a production-ready reasoning engine with cost awareness and professional reporting.
 
-- [x] **Formalize Core Orchestration (TLA+)**
-    - [x] Create `spec/FormalAnswerLoop.tla` to model the state transitions in `controller.py`.
-    - [x] Define Invariants: `Safety_VerificationSoundness` (Results must match verifier status), `Liveness_Termination` (System must reach terminal state).
-    - [x] Verify with TLC.
-- [x] **Formalize Parallel Runner (TLA+)**
-    - [x] Create `spec/ParallelRunner.tla` to model the concurrency in `runner.py`.
-    - [x] Prove result-index mapping consistency.
-- [x] **Formalize Retrieval Logic (Lean 4)**
-    - [x] Create `spec/RetrieverLogic.lean` to model the relationship between the Indexer and Retriever.
-    - [x] Prove that retrieved context is strictly a subset of the local library.
+- [x] **Usage Metering & Cost Tracking**
+    - [x] Update `controller.py` to track tokens and estimated costs per reasoning task.
+    - [x] Implement `src/utils/meter.py` to persist usage logs.
+- [x] **Tiered Verification ("The Funnel")**
+    - [x] Add `--tier` CLI flag (Standard, Pro, Enterprise).
+    - [x] Update `controller.py` to adjust iterations and adversarial settings based on tier.
+    - [x] Inject assurance context into Proposer prompts.
+- [x] **Professional Logic Reports**
+    - [x] Implement `src/ui/reporter.py` to generate standalone Markdown artifacts.
+    - [x] Calculate "Formal Assurance Score" (FAS) based on tool coverage and proof depth.
 
 ## Future Work
 - [ ] **Persistent Lean Server**: Implement a persistent Lean process to reduce verification latency.

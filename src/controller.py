@@ -10,14 +10,29 @@ from src.proposer.retriever import Retriever
 from src.library_manager import LibraryManager
 from src.verifiers.common import VerificationResult
 from src.utils.logger import log_info, log_success, log_error, log_warning, log_section, status, console
+from src.utils.meter import Meter
+from src.ui.reporter import Reporter
 
 class FormalReasoningLoop:
-    def __init__(self, max_iterations=5, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, show_prompts=False, combat=False, peer_review=False, rap_battle=False, generate_rap=False, force_mode=None):
-        self.max_iterations = max_iterations
+    def __init__(self, max_iterations=None, backend="gemini", model=None, api_key=None, base_url=None, verbose=False, show_prompts=False, combat=None, peer_review=None, rap_battle=False, generate_rap=False, force_mode=None, tier="pro"):
+        self.tier = tier.lower()
+        
+        # Apply Tier Presets
+        if self.tier == "standard":
+            self.max_iterations = max_iterations if max_iterations is not None else 1
+            self.combat = combat if combat is not None else False
+            self.peer_review = peer_review if peer_review is not None else False
+        elif self.tier == "enterprise":
+            self.max_iterations = max_iterations if max_iterations is not None else 10
+            self.combat = combat if combat is not None else True
+            self.peer_review = peer_review if peer_review is not None else True
+        else: # Pro (Default)
+            self.max_iterations = max_iterations if max_iterations is not None else 5
+            self.combat = combat if combat is not None else True
+            self.peer_review = peer_review if peer_review is not None else False
+
         self.verbose = verbose
         self.show_prompts = show_prompts
-        self.combat = combat
-        self.peer_review = peer_review
         self.rap_battle = rap_battle
         self.generate_rap = generate_rap
         self.force_mode = force_mode
@@ -25,6 +40,7 @@ class FormalReasoningLoop:
         self.retriever = Retriever()
         self.runner = VerifierRunner()
         self.library = LibraryManager()
+        self.meter = Meter()
         self.best_blocks = {"tla": None, "lean": None, "python": None}
         if not os.path.exists("debug"):
             os.makedirs("debug")
@@ -96,15 +112,24 @@ class FormalReasoningLoop:
                     elif self.peer_review:
                         context_prefix = PEER_REVIEW_RULES
 
+                    tier_prefix = ""
+                    if self.tier == "standard":
+                        tier_prefix = "ASSURANCE TIER: STANDARD. Focus on rapid, direct answers. Minimalist formalization. Be concise.\n"
+                    elif self.tier == "enterprise":
+                        tier_prefix = "ASSURANCE TIER: ENTERPRISE. Maximum rigor required. Exhaustive TLA+ specs and Lean proofs. Model every edge case. High-budget reasoning.\n"
+                    else:
+                        tier_prefix = "ASSURANCE TIER: PRO. Balanced rigor and cost. Robust formalization.\n"
+
                     if feedback:
                         repair_tmpl = RAP_REPAIR_PROMPT if self.rap_battle else REPAIR_PROMPT
-                        display_prompt = f"{context_prefix}{repair_tmpl.format(feedback=feedback)}"
+                        display_prompt = f"{context_prefix}{tier_prefix}{repair_tmpl.format(feedback=feedback)}"
                     else:
-                        display_prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=self.force_mode)}"
+                        display_prompt = format_user_prompt(task, context, force_mode=self.force_mode, context_prefix=context_prefix, tier_prefix=tier_prefix)
                     
                     log_section("OUTGOING PROMPT", display_prompt, style="cyan")
 
-                response = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review, force_mode=self.force_mode)
+                response_obj = self.proposer.propose(task, feedback, context=context, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review, force_mode=self.force_mode, tier=self.tier)
+                response = response_obj.content
             
             if self.verbose:
                 log_section("RAW LLM RESPONSE", response, style="dim")
@@ -276,6 +301,13 @@ class FormalReasoningLoop:
             full_log = response + combat_log
             self.library.save_raw_response(task_dir, i + 1, full_log)
 
+            # --- USAGE METERING ---
+            usage = self.proposer.get_usage()
+            self.meter.record_usage(self.proposer.model_name, usage.input_tokens, usage.output_tokens)
+            self.proposer.usage_input = 0
+            self.proposer.usage_output = 0
+            log_info(f"[METER] {self.meter.get_session_summary()}")
+
             # --- Success Handler ---
             if all_pass:
                 log_success("All verifiers passed!")
@@ -304,7 +336,8 @@ class FormalReasoningLoop:
                 )
                 
                 with status("Generating Verified Prose Answer..."):
-                    final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review)
+                    resp_obj = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review, tier=self.tier)
+                    final_analysis = resp_obj.content
                 
                 # Append formal proofs to final analysis for complete visibility
                 formal_proofs_section = "\n\n# Verified Formal Proofs\n"
@@ -328,6 +361,19 @@ class FormalReasoningLoop:
                 
                 log_section("FINAL LOGICAL ANALYSIS", final_analysis, style="green")
                 
+                # Final Usage Sync & Persist
+                usage = self.proposer.get_usage()
+                self.meter.record_usage(self.proposer.model_name, usage.input_tokens, usage.output_tokens)
+                self.meter.persist(task)
+                
+                # Generate Professional Report
+                report = Reporter.generate_report(task, final_analysis, results, self.meter.get_session_summary(), self.tier)
+                with open(os.path.join(task_dir, "logic_report.md"), "w") as f:
+                    f.write(report)
+                
+                log_success(f"Saved professional logic report to {task_dir}/logic_report.md")
+                log_success(f"[METER] Task Complete. {self.meter.get_session_summary()}")
+
                 if self.rap_battle or self.generate_rap:
                     self.finalize_rap_battle(task_dir)
                 
@@ -339,6 +385,18 @@ class FormalReasoningLoop:
         log_error("Max iterations reached.")
         log_section("LATEST ATTEMPT (UNVERIFIED)", str(last_response), style="red")
         
+        # Final Usage Persist even on failure
+        usage = self.proposer.get_usage()
+        self.meter.record_usage(self.proposer.model_name, usage.input_tokens, usage.output_tokens)
+        self.meter.persist(task)
+        
+        # Generate Report for failure too
+        report = Reporter.generate_report(task, str(last_response), results, self.meter.get_session_summary(), self.tier)
+        with open(os.path.join(task_dir, "logic_report.md"), "w") as f:
+            f.write(report)
+            
+        log_warning(f"[METER] Task Failed. {self.meter.get_session_summary()}")
+
         if self.rap_battle or self.generate_rap:
             self.finalize_rap_battle(task_dir)
         

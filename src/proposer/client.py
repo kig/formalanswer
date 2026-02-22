@@ -14,14 +14,27 @@ except ImportError:
 # Load environment variables from .env
 load_dotenv()
 
+from typing import NamedTuple, Dict, Optional
+
+class Usage(NamedTuple):
+    input_tokens: int
+    output_tokens: int
+
+class ProposerResponse(NamedTuple):
+    content: str
+    usage: Usage
+
 class Proposer:
     def __init__(self, backend="gemini", model_name=None, api_key=None, base_url=None):
         self.backend = backend.lower()
         self.model_name = model_name
         self.history = []  # For stateless backends like OpenAI/Ollama
+        self.usage_input = 0
+        self.usage_output = 0
 
         if self.backend == "mock":
             print("[PROPOSER] Using MOCK backend.")
+            self.model_name = "mock"
             self.client = None
             
         elif self.backend == "gemini":
@@ -55,12 +68,17 @@ class Proposer:
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
 
-    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False, force_mode=None):
+    def get_usage(self) -> Usage:
+        return Usage(self.usage_input, self.usage_output)
+
+    def propose(self, task, feedback=None, context=None, rap_battle=False, combat=False, peer_review=False, force_mode=None, tier="pro") -> ProposerResponse:
         """
         Calls the LLM API (Stateful).
         """
         if self.backend == "mock":
-            return self._get_mock_response()
+            self.usage_input += 100
+            self.usage_output += 200
+            return ProposerResponse(self._get_mock_response(), Usage(100, 200))
 
         context_prefix = ""
         if rap_battle:
@@ -70,27 +88,41 @@ class Proposer:
         elif peer_review:
              context_prefix = PEER_REVIEW_RULES
 
+        tier_prefix = ""
+        if tier == "standard":
+            tier_prefix = "ASSURANCE TIER: STANDARD. Focus on rapid, direct answers. Minimalist formalization. Be concise.\n"
+        elif tier == "enterprise":
+            tier_prefix = "ASSURANCE TIER: ENTERPRISE. Maximum rigor required. Exhaustive TLA+ specs and Lean proofs. Model every edge case. High-budget reasoning.\n"
+        else:
+            tier_prefix = "ASSURANCE TIER: PRO. Balanced rigor and cost. Robust formalization.\n"
+
         if self.backend == "gemini":
             if feedback:
                 repair_tmpl = RAP_REPAIR_PROMPT if rap_battle else REPAIR_PROMPT
-                prompt = f"{context_prefix}{repair_tmpl.format(feedback=feedback)}"
+                prompt = f"{context_prefix}{tier_prefix}{repair_tmpl.format(feedback=feedback)}"
             else:
-                prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"
+                prompt = format_user_prompt(task, context, force_mode=force_mode, context_prefix=context_prefix, tier_prefix=tier_prefix)
             
             try:
                 response = self.chat.send_message(prompt)
-                return response.text
+                usage = Usage(
+                    response.usage_metadata.prompt_token_count,
+                    response.usage_metadata.candidates_token_count
+                )
+                self.usage_input += usage.input_tokens
+                self.usage_output += usage.output_tokens
+                return ProposerResponse(response.text, usage)
             except Exception as e:
                 print(f"Gemini API Error: {e}")
-                return self._get_mock_response()
+                return ProposerResponse(self._get_mock_response(), Usage(0, 0))
 
         elif self.backend in ["openai", "ollama"]:
             if feedback:
                 repair_tmpl = RAP_REPAIR_PROMPT if rap_battle else REPAIR_PROMPT
-                prompt = f"{context_prefix}{repair_tmpl.format(feedback=feedback)}"
+                prompt = f"{context_prefix}{tier_prefix}{repair_tmpl.format(feedback=feedback)}"
                 self.history.append({"role": "user", "content": prompt})
             else:
-                prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=force_mode)}"
+                prompt = format_user_prompt(task, context, force_mode=force_mode, context_prefix=context_prefix, tier_prefix=tier_prefix)
                 self.history.append({"role": "user", "content": prompt})
             
             try:
@@ -100,10 +132,17 @@ class Proposer:
                 )
                 content = response.choices[0].message.content
                 self.history.append({"role": "assistant", "content": content})
-                return content
+                
+                usage = Usage(0, 0)
+                if response.usage:
+                    usage = Usage(response.usage.prompt_tokens, response.usage.completion_tokens)
+                
+                self.usage_input += usage.input_tokens
+                self.usage_output += usage.output_tokens
+                return ProposerResponse(content, usage)
             except Exception as e:
                 print(f"{self.backend.upper()} API Error: {e}")
-                return self._get_mock_response()
+                return ProposerResponse(self._get_mock_response(), Usage(0, 0))
 
     def explain_trace(self, trace_text, spec_code):
         """
@@ -122,9 +161,9 @@ class Proposer:
         response = self._call_stateless(prompt)
         
         # Strip "EXPLANATION: " prefix if present
-        if response.startswith("EXPLANATION:"):
-            return response[12:].strip()
-        return response
+        if response.content.startswith("EXPLANATION:"):
+            return response.content[12:].strip()
+        return response.content
 
     def rap_battle(self, proof_text):
         """
@@ -144,7 +183,7 @@ class Proposer:
             "OBJECTION: [Technical explanation of the flaw].\n"
             "SEVERITY: [High/Medium/Low]."
         )
-        return self._call_stateless(prompt)
+        return self._call_stateless(prompt).content
 
     def rap_judge(self, proof_text, objection):
         """
@@ -161,7 +200,7 @@ class Proposer:
             "SCORE: [1-5]\n"
             "COMMENTARY: [A short 4-bar rap verse explaining your rating]\n"
         )
-        resp_arg = self._call_stateless(prompt_arg)
+        resp_arg = self._call_stateless(prompt_arg).content
         
         # Call 2: Rate the Roast
         prompt_roast = (
@@ -177,7 +216,7 @@ class Proposer:
             "SCORE: [1-5]\n"
             "COMMENTARY: [A short 4-bar rap verse explaining your rating]\n"
         )
-        resp_roast = self._call_stateless(prompt_roast)
+        resp_roast = self._call_stateless(prompt_roast).content
 
         arg_score = 3
         roast_score = 3
@@ -221,7 +260,7 @@ class Proposer:
             "COUNTER-PROOF (Optional): [Code block if needed].\n"
             "SEVERITY: [High/Medium/Low]."
         )
-        return self._call_stateless(prompt)
+        return self._call_stateless(prompt).content
 
     def judge(self, proof_text, objection):
         """
@@ -238,7 +277,7 @@ class Proposer:
             "SCORE: [1-5]\n"
             "COMMENTARY: [Brief assessment]\n"
         )
-        resp_arg = self._call_stateless(prompt_arg)
+        resp_arg = self._call_stateless(prompt_arg).content
         
         # Call 2: Rate the Objection
         prompt_obj = (
@@ -253,7 +292,7 @@ class Proposer:
             "SCORE: [1-5]\n"
             "COMMENTARY: [Brief assessment]\n"
         )
-        resp_obj = self._call_stateless(prompt_obj)
+        resp_obj = self._call_stateless(prompt_obj).content
 
         arg_score = 3
         obj_score = 3
@@ -296,7 +335,7 @@ class Proposer:
             "FORMAL_HINT (Optional): [Code block if needed].\n"
             "TONE: Polite, constructive, and collaborative."
         )
-        return self._call_stateless(prompt)
+        return self._call_stateless(prompt).content
 
     def peer_review_judge(self, proof_text, suggestion):
         """
@@ -313,7 +352,7 @@ class Proposer:
             "OUTPUT: A score from 0.0 (Critical Gap) to 1.0 (Solid/Minor Polish needed).\n"
             "Just output the number."
         )
-        response = self._call_stateless(prompt)
+        response = self._call_stateless(prompt).content
         try:
             # Extract float
             match = re.search(r"(\d+(\.\d+)?)", response)
@@ -340,7 +379,7 @@ class Proposer:
             f"RAW BATTLE HISTORY:\n{raw_history}\n\n"
             "OUTPUT THE FINAL SCRIPT ONLY."
         )
-        return self._call_stateless(prompt)
+        return self._call_stateless(prompt).content
 
     def produce_song_gen_lyrics(self, rap_script):
         """
@@ -356,14 +395,16 @@ class Proposer:
             f"INPUT SCRIPT:\n{rap_script}\n\n"
             "OUTPUT ONLY THE FORMATTED LYRICS."
         )
-        return self._call_stateless(prompt)
+        return self._call_stateless(prompt).content
 
-    def _call_stateless(self, prompt):
+    def _call_stateless(self, prompt) -> ProposerResponse:
         """
         Helper for stateless calls (Critique/Judge).
         """
         if self.backend == "mock":
-            return "Mock Response"
+            self.usage_input += 10
+            self.usage_output += 20
+            return ProposerResponse("Mock Response", Usage(10, 20))
         if self.backend == "gemini":
             try:
                 # Use client.models.generate_content for stateless
@@ -371,21 +412,33 @@ class Proposer:
                     model=self.model_name,
                     contents=prompt
                 )
-                return response.text
+                usage = Usage(
+                    response.usage_metadata.prompt_token_count,
+                    response.usage_metadata.candidates_token_count
+                )
+                self.usage_input += usage.input_tokens
+                self.usage_output += usage.output_tokens
+                return ProposerResponse(response.text, usage)
             except Exception as e:
                 print(f"Gemini API Error (Stateless): {e}")
-                return "Error"
+                return ProposerResponse("Error", Usage(0, 0))
         elif self.backend in ["openai", "ollama"]:
             try:
                 response = self.client.chat.completions.create(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}]
                 )
-                return response.choices[0].message.content
+                content = response.choices[0].message.content
+                usage = Usage(0, 0)
+                if response.usage:
+                    usage = Usage(response.usage.prompt_tokens, response.usage.completion_tokens)
+                self.usage_input += usage.input_tokens
+                self.usage_output += usage.output_tokens
+                return ProposerResponse(content, usage)
             except Exception as e:
                 print(f"{self.backend.upper()} API Error (Stateless): {e}")
-                return "Error"
-        return "Error"
+                return ProposerResponse("Error", Usage(0, 0))
+        return ProposerResponse("Error", Usage(0, 0))
 
     def _get_mock_response(self):
         # A robust mock response demonstrating the Probabilistic/Predictive architecture

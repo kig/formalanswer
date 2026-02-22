@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=["discrete", "probabilistic", "hybrid", "factual"], help="Force a specific reasoning mode")
     parser.add_argument("--max-iterations", type=int, default=5, help="Maximum number of reasoning iterations")
     parser.add_argument("--construct-rap", nargs='?', const='CURRENT', help="Construct rap lyrics from history. Provide directory path for existing task, or flag for current session.")
+    parser.add_argument("--tier", choices=["standard", "pro", "enterprise"], default="pro", help="Reasoning assurance tier (affects rigor and cost)")
     
     args = parser.parse_args()
     
@@ -27,7 +28,8 @@ if __name__ == "__main__":
             backend=args.backend,
             model=args.model,
             api_key=args.api_key,
-            base_url=args.base_url
+            base_url=args.base_url,
+            tier=args.tier
         )
         frl.finalize_rap_battle(args.construct_rap)
         sys.exit(0)
@@ -56,6 +58,7 @@ if __name__ == "__main__":
         peer_review=args.peer_review,
         rap_battle=args.rap_battle,
         generate_rap=(args.construct_rap == 'CURRENT'),
-        force_mode=args.mode
+        force_mode=args.mode,
+        tier=args.tier
     )
     frl.run(task)

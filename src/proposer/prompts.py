@@ -100,7 +100,7 @@ You must output five distinct sections. Use the following TEMPLATES and RULES ex
 Your output will be mechanically verified. If probabilistic, the Z3/Python script will be treated as an empirical grounding check.
 """
 
-def format_user_prompt(question, context="", force_mode=None):
+def format_user_prompt(question, context="", force_mode=None, context_prefix="", tier_prefix=""):
     mode_instruction = ""
     if force_mode:
         mode_instruction = f"**MANDATORY:** You MUST select `[MODE: {force_mode.upper()}]`."
@@ -110,6 +110,8 @@ def format_user_prompt(question, context="", force_mode=None):
 - [MODE: DISCRETE] for logic/math."""
 
     prompt = f"""
+{context_prefix}
+{tier_prefix}
 {mode_instruction}
 
 QUESTION: {question}
