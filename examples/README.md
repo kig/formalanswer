@@ -1,5 +1,7 @@
 # ProofLoop Showcase: VC Investment Logic Battle
 
+<img src="rap_battle.webp">
+
 [**Listen to the Logic Rap Battle (Music Player)**](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/formalanswer/main/examples/proofloop_rap_battle.mp3)
 
 This example demonstrates **ProofLoop** in a complex, probabilistic reasoning scenario: **Evaluating which AI startup a Venture Capitalist should fund.**
@@ -12,6 +14,8 @@ The system uses three layers of verification:
 ---
 
 ## Verified Proof Output (`proof.md`)
+
+<img src="rap_battle_2.webp">
 
 # Mode Selection
 [MODE: PROBABILISTIC]
