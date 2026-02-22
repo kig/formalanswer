@@ -84,17 +84,23 @@ class FormalReasoningLoop:
             # Call LLM with Context
             with status("Proposer is thinking..."):
                 if self.show_prompts:
-                    # Construct what the prompt would be (Gemini specific logic here for simplicity)
-                    # For a more robust solution, Proposer could return the prompt it used.
-                    from src.proposer.prompts import format_user_prompt
+                    from src.proposer.prompts import format_user_prompt, RAP_BATTLE_RULES, ADVERSARIAL_COMBAT_RULES, PEER_REVIEW_RULES
                     from src.proposer.repair_prompt import REPAIR_PROMPT
                     from src.proposer.rap_repair_prompt import RAP_REPAIR_PROMPT
                     
+                    context_prefix = ""
+                    if self.rap_battle:
+                        context_prefix = RAP_BATTLE_RULES
+                    elif self.combat:
+                        context_prefix = ADVERSARIAL_COMBAT_RULES
+                    elif self.peer_review:
+                        context_prefix = PEER_REVIEW_RULES
+
                     if feedback:
                         repair_tmpl = RAP_REPAIR_PROMPT if self.rap_battle else REPAIR_PROMPT
-                        display_prompt = repair_tmpl.format(feedback=feedback)
+                        display_prompt = f"{context_prefix}{repair_tmpl.format(feedback=feedback)}"
                     else:
-                        display_prompt = format_user_prompt(task, context, force_mode=self.force_mode)
+                        display_prompt = f"{context_prefix}{format_user_prompt(task, context, force_mode=self.force_mode)}"
                     
                     log_section("OUTGOING PROMPT", display_prompt, style="cyan")
 
@@ -298,7 +304,7 @@ class FormalReasoningLoop:
                 )
                 
                 with status("Generating Verified Prose Answer..."):
-                    final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode)
+                    final_analysis = self.proposer.propose(analysis_prompt, feedback=None, context=context, force_mode=self.force_mode, rap_battle=self.rap_battle, combat=self.combat, peer_review=self.peer_review)
                 
                 # Append formal proofs to final analysis for complete visibility
                 formal_proofs_section = "\n\n# Verified Formal Proofs\n"

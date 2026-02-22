@@ -138,5 +138,15 @@ example : 1=1
         self.assertIn("Logic Rap Battle", prompt)
         self.assertIn("LOGIC BATTLE: REPAIR PROTOCOL", prompt)
 
+    def test_propose_final_analysis_rap_battle(self):
+        """Test that rap_battle flag is used in final analysis."""
+        self.proposer.chat.send_message.return_value.text = "Mock Final Rap Answer"
+        # Simulate final analysis call (task is the analysis prompt)
+        self.proposer.propose("Final prompt", rap_battle=True)
+        
+        args, _ = self.proposer.chat.send_message.call_args
+        prompt = args[0]
+        self.assertIn("Logic Rap Battle", prompt)
+
 if __name__ == "__main__":
     unittest.main()

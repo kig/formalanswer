@@ -10,7 +10,8 @@ if __name__ == "__main__":
     parser.add_argument("--model", help="Specific model name (e.g., gpt-4, gemini-2.5-flash, llama3)")
     parser.add_argument("--base-url", help="Base URL for OpenAI/Ollama API")
     parser.add_argument("--api-key", help="API Key (overrides env vars)")
-    parser.add_argument("--verbose", action="store_true", help="Show detailed verification errors in output")
+    parser.add_argument("--verbose", action="store_true", help="Show detailed verification errors and raw LLM replies")
+    parser.add_argument("--show-prompts", action="store_true", help="Display outgoing prompts sent to the LLM")
     parser.add_argument("--combat", action="store_true", help="Enable Adversarial Combat Mode (Red Team review)")
     parser.add_argument("--peer-review", action="store_true", help="Enable Constructive Peer Review Mode")
     parser.add_argument("--rap-battle", action="store_true", help="Enable Logic Rap Battle Mode")
@@ -50,6 +51,7 @@ if __name__ == "__main__":
         api_key=args.api_key,
         base_url=args.base_url,
         verbose=args.verbose,
+        show_prompts=args.show_prompts,
         combat=args.combat,
         peer_review=args.peer_review,
         rap_battle=args.rap_battle,

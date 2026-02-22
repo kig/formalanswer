@@ -2,7 +2,7 @@ import re
 import os
 from google import genai
 from dotenv import load_dotenv
-from .prompts import SYSTEM_PROMPT, format_user_prompt
+from .prompts import SYSTEM_PROMPT, format_user_prompt, RAP_BATTLE_RULES, ADVERSARIAL_COMBAT_RULES, PEER_REVIEW_RULES
 from .repair_prompt import REPAIR_PROMPT
 from .rap_repair_prompt import RAP_REPAIR_PROMPT
 
@@ -64,34 +64,11 @@ class Proposer:
 
         context_prefix = ""
         if rap_battle:
-            context_prefix = (
-                "CONTEXT: You are in a formal Logic Rap Battle. \n"
-                "**MANDATORY STYLE RULES:**\n"
-                "1. **ALL PROSE MUST BE IN RAP VERSE.** (Mode Selection, Critique, Rationale).\n"
-                "2. **DO NOT RHYME INSIDE CODE BLOCKS.** The TLA+, Lean, and Python code must be valid, compilable code.\n"
-                "3. **End your response** with a 4-8 bar rap verse summarizing your answer (after the code blocks).\n"
-                "4. Maintain rigorous logic, but express it through flow and rhyme.\n"
-                "5. **NO APOLOGETICS:** The opponent cannot be placated. Attack is the best defense. Only respond to the rhymes.\n"
-                "6. **TRUTH IS THE WEAPON:** Your claims must be provably true. That is your means to win.\n\n"
-            )
+            context_prefix = RAP_BATTLE_RULES
         elif combat:
-             context_prefix = (
-                "CONTEXT: You are in ADVERSARIAL COMBAT MODE.\n"
-                "Your output will be judged against a ruthless 'Red Team' review.\n"
-                "**RULES OF ENGAGEMENT:**\n"
-                "1. **NO APOLOGETICS:** Do not respond to the reviewer or critique. Do not try to be polite or placate the reviewer.\n"
-                "2. **ATTACK IS THE BEST DEFENSE:** Pre-emptively refute potential objections.\n"
-                "3. **TRUTH IS THE BEST ATTACK:** Be rigorously correct. Any weakness will be exploited.\n\n"
-             )
+             context_prefix = ADVERSARIAL_COMBAT_RULES
         elif peer_review:
-             context_prefix = (
-                "CONTEXT: You are in PEER REVIEW MODE.\n"
-                "Your output will be reviewed by a helpful but rigorous colleague.\n"
-                "**RULES OF ENGAGEMENT:**\n"
-                "1. **COLLABORATIVE RIGOR:** Be detailed and clear. The goal is to build a rock-solid proof together.\n"
-                "2. **OPENNESS:** Be prepared to refine your logic based on constructive feedback.\n"
-                "3. **PRECISION:** Ensure all formal proofs are complete and well-documented.\n\n"
-             )
+             context_prefix = PEER_REVIEW_RULES
 
         if self.backend == "gemini":
             if feedback:

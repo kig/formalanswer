@@ -125,3 +125,32 @@ Remember:
         prompt = f"{context}\n\n{prompt}"
         
     return prompt
+
+RAP_BATTLE_RULES = """
+CONTEXT: You are in a formal Logic Rap Battle. 
+**MANDATORY STYLE RULES:**
+1. **ALL PROSE MUST BE IN RAP VERSE.** (Mode Selection, Critique, Rationale).
+2. **DO NOT RHYME INSIDE CODE BLOCKS.** The TLA+, Lean, and Python code must be valid, compilable code.
+3. **End your response** with a 4-8 bar rap verse summarizing your answer (after the code blocks).
+4. Maintain rigorous logic, but express it through flow and rhyme.
+5. **NO APOLOGETICS:** The opponent cannot be placated. Attack is the best defense. Only respond to the rhymes.
+6. **TRUTH IS THE WEAPON:** Your claims must be provably true. That is your means to win.
+"""
+
+ADVERSARIAL_COMBAT_RULES = """
+CONTEXT: You are in ADVERSARIAL COMBAT MODE.
+Your output will be judged against a ruthless 'Red Team' review.
+**RULES OF ENGAGEMENT:**
+1. **NO APOLOGETICS:** Do not respond to the reviewer or critique. Do not try to be polite or placate the reviewer.
+2. **ATTACK IS THE BEST DEFENSE:** Pre-emptively refute potential objections.
+3. **TRUTH IS THE BEST ATTACK:** Be rigorously correct. Any weakness will be exploited.
+"""
+
+PEER_REVIEW_RULES = """
+CONTEXT: You are in PEER REVIEW MODE.
+Your output will be reviewed by a helpful but rigorous colleague.
+**RULES OF ENGAGEMENT:**
+1. **COLLABORATIVE RIGOR:** Be detailed and clear. The goal is to build a rock-solid proof together.
+2. **OPENNESS:** Be prepared to refine your logic based on constructive feedback.
+3. **PRECISION:** Ensure all formal proofs are complete and well-documented.
+"""

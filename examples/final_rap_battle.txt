@@ -1,0 +1,115 @@
+(Beat drops: A heavy, methodical beat with complex, swirling synth lines. Think RZA meets Squarepusher.)
+
+**PRODUCER:**
+Yo, check the mic, one two, we in the buildin'!
+Tonight, the logic gets spilled, no feelings!
+We got two titans, minds sharp, ready to spit truth,
+Battlin' for the best startup, no room for spoof!
+On my left, the Architect of Algorithms, PROPOSER!
+On my right, the Emperor of Empiricals, OPPONENT!
+This ain't for the faint, this is for the brain!
+Three minutes to prove your pick, who feels the pain?
+Let's go!
+
+[VERSE 1]
+**PROPOSER:**
+Yo, I step to the mic, with data so raw,
+My pick's FormalAnswer, breakin' every flaw.
+While y'all chase the hype, the trends, the fleeting,
+I'm building a moat, where trust is competin'.
+See, Enterprise AI, that's the real big prize,
+But hallucinations? That's where innovation dies.
+My pick? Neurosymbolic, a reasoning loop tight,
+Crossing the chasm, from chatbots to pure light!
+This ain't just B2B, it's B2Trust, my friend,
+For VCs like Lux, this is the market's new bend.
+They fund "team + thesis," not just "user count,"
+A deep tech solution, scaling to a new amount.
+I'm talkin' `P(Success)` structurally higher, no lie,
+Than consumer social, beneath a turbulent sky.
+My **FormalAnswer** stands tall, a fortress so grand,
+The safest bet, the best bet, across the whole land!
+
+[VERSE 2]
+**OPPONENT:**
+Hold up, PROPOSER, you stuck in the past?
+"Trust" and "Deep Tech," that's moving too fast!
+While you're building moats, the market is hot,
+Vibecoding's the rage, giving VCs a shot!
+My pick is **AppTok**, the TikTok for AI,
+Discovering new tools, beneath a coding-filled sky!
+The marginal cost of creation, approaching zero,
+The scarcity shifts, to the true content hero!
+Replit, Cursor's blowing up, the supply side's proof,
+This consumer social is busting through the roof!
+You talk about "Hallucination," a problem for some,
+But "Discovery" for millions? The big bang has come!
+a16z and Benchmark, they see the future so clear,
+It's consumer virality, banishing all fear!
+While you're polishing code, with specs so refined,
+**AppTok** takes the market, leaving your 'moat' behind!
+
+[VERSE 3]
+**PROPOSER:**
+"Leaving my moat"? My man, your vision is blurred!
+Hype's a quick high, but diligence is preferred.
+I ran the TLA+, that's a Safety Inspector,
+Modeled the VC funnel, like a cold-hard detector!
+You talk about "AppTok," with its 'high Hype' score,
+But `MinMoatScore = 6`, and yours is on the floor!
+Softwiki, AI Toolkit? They got rejected right quick,
+Their `moat` scores too low, it made the model click!
+My `FundingInvariant` proves, straight to the core,
+`TermSheet` means `Moat`, or you're out the door!
+Even Lean 4 showed, with weights 0.5 on the Moat,
+My **FormalAnswer** floats, while your AppTok barely boats!
+You're chasing short-term alpha, a fleeting trend,
+I'm building the bedrock, that will never bend!
+
+[VERSE 4]
+**OPPONENT:**
+Yo, I hear your TLA+, your Lean 4, it's cute,
+But real-world VCs, they don't follow your route!
+My Monte Carlo, that's Z3 in Python's embrace,
+Shows variability, the human element in this race!
+VCs aren't rigid, like your `MinMoatScore` line,
+They got different weights, their preferences define!
+Some love the Moat, sure, but others chase Hype,
+For `w_hype > 0.5`, my **AppTok** takes flight!
+A `random.normal` on those weights, you see the full span,
+Even with noise, the potential still stands!
+Your FormalAnswer's good, but it's not a sure thing,
+The market is dynamic, where new winners can spring!
+The "App Store for AI" is a 'Holy Grail', my friend,
+And **AppTok** has the virality, till the very end!
+You're stuck in theory, I'm out in the fray,
+Catching the wave, funding **AppTok** today!
+
+[VERSE 5]
+**PROPOSER:**
+You talk 'bout noise, 'bout human choice and the sway?
+But my Z3 script, it still lights up the way!
+Even with `random.normal` on weights, fluctuating the score,
+My **FormalAnswer** wins out, 60 to 70% or more!
+It clears the Pitch filter, with Hype of an eight,
+And seals the Due Diligence, with Moat, closing the gate!
+Your **AppTok** barely scrapes by, right at the threshold,
+A `MinMoatScore` of six, a story oft told.
+I'm optimized for the *entire* funnel, no doubt,
+The `Funding Invariant`, screams it out loud!
+You saw `Softwiki` and `AI Toolkit`, they fell to the floor,
+Mathematically eliminated, they can't ask for more!
+My logic is sound, my proofs verified,
+This ain't just a hunch, it's mathematically tied!
+So bow down, OPPONENT, your arguments are thin,
+**FormalAnswer** wins, let the funding begin!
+
+**PRODUCER:**
+Woo! Logic bombs deployed! Verification complete!
+The mic drops hard, can you feel the heat?
+PROPOSER, OPPONENT, you brought the lyrical fight,
+But when the numbers speak, who shines ever so bright?
+The judge's decision, it's clear and it's bold,
+The market's dynamics, a story untold...
+(Beat fades out with a final, echoing synth chord.)
+Peace!
