@@ -24,6 +24,14 @@
 - [x] **CLI Ergonomics**: Added `pl` shorthand for rapid invocation.
 - [x] **ProofLoop as a Gemini-CLI Skill**: Package ProofLoop so it can be installed via `gemini skills install`.
 
+## Priority 16: Web UI & API (Reasoning-as-a-Service)
+**Goal:** Transition to a cloud-native backend to support zero-install agentic reasoning.
+
+- [ ] **FastAPI Scaffold**: Implement the core REST API in `src/api/server.py`.
+- [ ] **Job Queue**: Setup Celery and Redis for handling long-running `FormalReasoningLoop` tasks.
+- [ ] **Sandboxed Workers**: Create a Dockerfile for isolated verification (Lean/TLA+/Python).
+- [ ] **React Frontend**: Develop a dashboard for visualizing logic battles and verification results.
+
 ## Future Work
 - [x] **Persistent Lean Server**: Implement a persistent Lean process to reduce verification latency.
 - [ ] **Web UI**: Create a FastAPI/React frontend for visual interaction.
