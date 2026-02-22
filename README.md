@@ -34,19 +34,17 @@ This project represents the 2026 gold standard for automated reasoning, utilizin
 
 ProofLoop automatically selects the best reasoning mode for your query (Discrete, Probabilistic, Hybrid, or Factual). Explore our [**examples/**](examples/) directory to see it in action:
 
-* [**VC Investment Logic**](examples/README.md): Complex probabilistic evaluation of AI startups verified via TLA+, Lean 4, and JAX.
-* **Distributed Systems:** "Design a deadlock-free distributed locking protocol for a multi-region database."
-* **Game Theory:** "Calculate the Nash Equilibrium for a 3-player version of Rock-Paper-Scissors."
+* [**VC Investment Logic**](examples/README.md): Probabilistic evaluation of AI startup ideas modeled with TLA+, Lean 4, and JAX.
 
-### Adversarial Reasoning (Logic Rap Battles)
-ProofLoop isn't just a solver; it's a fighter. Finding a flaw in a proof is easier when you're trying to win a roast. Use `--rap-battle` to watch two logical agents tear each other's arguments apart in rhyming verse, using **Adversarial Red-Teaming** to find "Sim-to-Real" gaps before settling the score with a formal proof.
+### Adversarial Reasoning & Logic Rap Battles
+ProofLoop isn't just a solver; it's a fighter. Finding a flaw in a proof is easier when you're trying to win a roast. Use `--rap-battle` to watch two logical agents tear each other's arguments apart in rhyming verse, using **Adversarial Red-Teaming** to find "Sim-to-Real" gaps before settling the score with a formal proof. The more sedate `--combat` mode keeps things more formal, whereas `--peer-review` tries to be more constructive.
 
 ```bash
-./query.sh "Who wins in a battle between a centralized and decentralized oracle?" --rap-battle
+./pl "Who wins in a battle between a centralized and decentralized oracle?" --rap-battle
 
 ```
 
-[Listen to an Adversarial Reasoning Loop here!](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/formalanswer/main/examples/proofloop_rap_battle.mp3)
+[Listen to the AI Startup Logic Rap Battle here!](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/formalanswer/main/examples/proofloop_rap_battle.mp3)
 
 ---
 
@@ -80,7 +78,7 @@ cd work && lake exe cache get && cd ..
 Run a natural language query through the loop:
 
 ```bash
-./query.sh "Schedule 3 meetings for 5 people with overlapping 'No-Fly' zones..."
+./pl "Schedule 3 meetings for 5 people with overlapping 'No-Fly' zones..."
 
 ```
 
@@ -88,11 +86,11 @@ Run a natural language query through the loop:
 ProofLoop supports multiple backends (`gemini`, `openai`, `ollama`).
 
 ```bash
-./query.sh "Question..." --backend openai --model gpt-4o --mode discrete
+./pl "Question..." --backend openai --model gpt-4o --mode discrete
 
 ```
 
-*(Run `./query.sh --help` for full options, including `--combat`, `--peer-review`, and custom backend configurations.)*
+*(Run `./pl --help` for full options, including `--combat`, `--peer-review`, and custom backend configurations.)*
 
 ---
 
