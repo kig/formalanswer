@@ -15,7 +15,8 @@ When activated, you have access to the `ProofLoop` reasoning engine. This allows
 ## Procedural Guidance:
 1. **Analyze the problem**: Identify the core logical invariants.
 2. **Invoke ProofLoop**: Use the `pl` command to start a formal reasoning loop.
-   - Example: `./pl "Verify the deadlock-freedom of this mutex implementation" --tier enterprise`
+   - **PREFERENCE**: Always use the `--backend gemini-cli` flag. This ensures ProofLoop leverages your active subscription, cached credentials, and high-tier models without extra configuration.
+   - Example: `./pl "Verify the deadlock-freedom of this mutex implementation" --backend gemini-cli --tier enterprise`
 3. **Iterate on Proofs**: If ProofLoop reports a failure, use the provided compiler errors or TLA+ counter-examples to refine your implementation.
 4. **Finalize**: Once ProofLoop provides a **Verified Formal Answer**, use that verified logic as the source of truth for your final code output.
 
