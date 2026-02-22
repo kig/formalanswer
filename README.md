@@ -26,6 +26,15 @@ FormalAnswer isn't just a solver; it's a fighter. Use the `--rap-battle` mode to
 
 ---
 
+## 🚀 Showcase & Examples
+
+Explore real-world verified reasoning results in the [**examples/**](examples/) directory.
+
+*   [**📊 VC Investment Logic Battle**](examples/README.md): A complex probabilistic evaluation of AI startups verified via TLA+, Lean 4, and JAX.
+*   [**🎧 Listen to the Logic Rap Battle (Music Player)**](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/formalanswer/main/examples/formalanswer_rap_battle.mp3): Hear the adversarial reasoning loop in action!
+
+---
+
 ## The Modern Reasoning Stack
 
 This project uses the **"Lean 4 + TLA+"** stack, representing the 2026 gold standard for automated reasoning:
