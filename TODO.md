@@ -22,7 +22,7 @@
 
 - [x] **Gemini-CLI Backend (Dogfooding)**: Use `gemini-cli` as a proposer backend to leverage existing auth and code-assistance subscriptions.
 - [x] **CLI Ergonomics**: Added `pl` shorthand for rapid invocation.
-- [ ] **ProofLoop as a Gemini-CLI Skill**: Package ProofLoop so it can be installed via `gemini skills install`.
+- [x] **ProofLoop as a Gemini-CLI Skill**: Package ProofLoop so it can be installed via `gemini skills install`.
 
 ## Future Work
 - [x] **Persistent Lean Server**: Implement a persistent Lean process to reduce verification latency.
