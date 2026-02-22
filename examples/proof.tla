@@ -2,7 +2,7 @@
 EXTENDS Naturals, Integers, Sequences
 
 \* DEFINITIONS
-ProjectTypes == {"FormalAnswer", "AI_Toolkit", "Softwiki", "AppTok"}
+ProjectTypes == {"ProofLoop", "AI_Toolkit", "Softwiki", "AppTok"}
 Stages       == {"Pitch", "Diligence", "TermSheet", "Reject"}
 
 \* THRESHOLDS
@@ -19,7 +19,7 @@ Vars == <<candidate, stage, metrics>>
 
 \* Attributes logic: Maps project names to their scores
 Attributes(p) ==
-    CASE p = "FormalAnswer" -> [moat |-> 9, tam |-> 50, hype |-> 8]
+    CASE p = "ProofLoop" -> [moat |-> 9, tam |-> 50, hype |-> 8]
       [] p = "AppTok"       -> [moat |-> 6, tam |-> 100, hype |-> 9]
       [] p = "Softwiki"     -> [moat |-> 3, tam |-> 10, hype |-> 4]
       [] p = "AI_Toolkit"   -> [moat |-> 2, tam |-> 5, hype |-> 3]

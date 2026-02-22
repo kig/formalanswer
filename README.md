@@ -1,10 +1,10 @@
-# FormalAnswer - The Formal Reasoning Loop
+# ProofLoop - The Formal Reasoning Loop
 
-**FormalAnswer** is a "System 2" orchestrator for Large Language Models that uses **Formal Methods** to mechanically verify natural language reasoning. 
+**ProofLoop** is a "System 2" orchestrator for Large Language Models that uses **Formal Methods** to mechanically verify natural language reasoning. 
 
-It implements a "Neural-Algebraic Mirror": the LLM proposes a logical argument, and FormalAnswer validates it using a suite of formal tools (Lean 4, TLA+, JAX) before accepting it.
+It implements a "Neural-Algebraic Mirror": the LLM proposes a logical argument, and ProofLoop validates it using a suite of formal tools (Lean 4, TLA+, JAX) before accepting it.
 
-| Feature | Traditional LLM (System 1) | FormalAnswer (System 2) |
+| Feature | Traditional LLM (System 1) | ProofLoop (System 2) |
 | :--- | :--- | :--- |
 | **Reliability** | "Sounds correct" (Probabilistic) | **Is correct** (Deterministic) |
 | **Logic** | Hallucinates plausible steps | Mechanical Proof (Lean 4) |
@@ -18,7 +18,7 @@ It implements a "Neural-Algebraic Mirror": the LLM proposes a logical argument, 
 
 ## 🧠 How It Works: The Modern Reasoning Stack
 
-FormalAnswer acts as an automated judge and self-healing loop. If verification fails, specific error logs (compiler messages, counter-examples) are fed back to the LLM for a targeted "Repair" attempt. 
+ProofLoop acts as an automated judge and self-healing loop. If verification fails, specific error logs (compiler messages, counter-examples) are fed back to the LLM for a targeted "Repair" attempt. 
 
 
 
@@ -32,27 +32,27 @@ This project represents the 2026 gold standard for automated reasoning, utilizin
 
 ## 🚀 Showcase & Capabilities
 
-FormalAnswer automatically selects the best reasoning mode for your query (Discrete, Probabilistic, Hybrid, or Factual). Explore our [**examples/**](examples/) directory to see it in action:
+ProofLoop automatically selects the best reasoning mode for your query (Discrete, Probabilistic, Hybrid, or Factual). Explore our [**examples/**](examples/) directory to see it in action:
 
 * [**📊 VC Investment Logic**](examples/README.md): Complex probabilistic evaluation of AI startups verified via TLA+, Lean 4, and JAX.
 * **💡 Distributed Systems:** "Design a deadlock-free distributed locking protocol for a multi-region database."
 * **💡 Game Theory:** "Calculate the Nash Equilibrium for a 3-player version of Rock-Paper-Scissors."
 
 ### 🎤 Adversarial Reasoning (Logic Rap Battles)
-FormalAnswer isn't just a solver; it's a fighter. Finding a flaw in a proof is easier when you're trying to win a roast. Use `--rap-battle` to watch two logical agents tear each other's arguments apart in rhyming verse, using **Adversarial Red-Teaming** to find "Sim-to-Real" gaps before settling the score with a formal proof.
+ProofLoop isn't just a solver; it's a fighter. Finding a flaw in a proof is easier when you're trying to win a roast. Use `--rap-battle` to watch two logical agents tear each other's arguments apart in rhyming verse, using **Adversarial Red-Teaming** to find "Sim-to-Real" gaps before settling the score with a formal proof.
 
 ```bash
 ./query.sh "Who wins in a battle between a centralized and decentralized oracle?" --rap-battle
 
 ```
 
-*🎧 [Listen to an Adversarial Reasoning Loop here!*](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/formalanswer/main/examples/formalanswer_rap_battle.mp3)
+*🎧 [Listen to an Adversarial Reasoning Loop here!*](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/proofloop/main/examples/proofloop_rap_battle.mp3)
 
 ---
 
 ## ✨ New in 2026: Self-Healing Systems
 
-FormalAnswer has evolved into an agentic, learning system:
+ProofLoop has evolved into an agentic, learning system:
 
 * **Auto-Repair & Incremental Patching:** Automatically attempts stronger proof tactics (`aesop`, `omega`) before asking the LLM to rewrite. When retrying, it only requests patches for failing blocks to save tokens.
 * **Knowledge Reuse (RAG):** Successful proofs are indexed locally to seed context for future, similar problems.
@@ -85,7 +85,7 @@ Run a natural language query through the loop:
 ```
 
 **Advanced CLI Options:**
-FormalAnswer supports multiple backends (`gemini`, `openai`, `ollama`).
+ProofLoop supports multiple backends (`gemini`, `openai`, `ollama`).
 
 ```bash
 ./query.sh "Question..." --backend openai --model gpt-4o --mode discrete
@@ -96,12 +96,12 @@ FormalAnswer supports multiple backends (`gemini`, `openai`, `ollama`).
 
 ---
 
-## 🤯 Meta-Example: FormalAnswer Verifying Itself
+## 🤯 Meta-Example: ProofLoop Verifying Itself
 
-To prove the power of this system, we asked FormalAnswer to formally verify its own internal retry loop. It generated the rationale, bounded the execution with TLA+, and mathematically proved the logic in Lean 4.
+To prove the power of this system, we asked ProofLoop to formally verify its own internal retry loop. It generated the rationale, bounded the execution with TLA+, and mathematically proved the logic in Lean 4.
 
 <details>
-<summary><b>Click to view the TLA+ Spec and Lean 4 Proof of FormalAnswer's Governor</b></summary>
+<summary><b>Click to view the TLA+ Spec and Lean 4 Proof of ProofLoop's Governor</b></summary>
 
 **Shared Constants Identified:** `MAX_ATTEMPTS = 5`
 
@@ -145,11 +145,11 @@ import Aesop
 
 def MAX_ATTEMPTS : ℕ := 5
 
-theorem formalanswer_transition_consistent (n : ℕ) (h : n < MAX_ATTEMPTS) : 
+theorem proofloop_transition_consistent (n : ℕ) (h : n < MAX_ATTEMPTS) : 
   n + 1 <= MAX_ATTEMPTS := by
   omega
 
-theorem formalanswer_exhaustion_logic (n : ℕ) (h : n = MAX_ATTEMPTS) :
+theorem proofloop_exhaustion_logic (n : ℕ) (h : n = MAX_ATTEMPTS) :
   ¬(n < MAX_ATTEMPTS) := by
   aesop
 

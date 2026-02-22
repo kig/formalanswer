@@ -13,11 +13,11 @@ The previous TLA+ verification failed because the model checker configuration ex
 
 # Rationale & Shared Constants
 
-**The Winner: FormalAnswer**
+**The Winner: ProofLoop**
 **The Runner-Up: AppTok**
 
 The analysis remains consistent:
-1.  **FormalAnswer:** Fits the "Infrastructure/Reasoning" thesis. High Moat, Medium Hype. Safest bet for Series A.
+1.  **ProofLoop:** Fits the "Infrastructure/Reasoning" thesis. High Moat, Medium Hype. Safest bet for Series A.
 2.  **AppTok:** Fits the "Consumer/Discovery" thesis. Medium Moat, High Hype. High variance but potential unicorn.
 3.  **Others:** Softwiki and AI Toolkit lack sufficient moats (defensibility) against foundational model providers.
 
@@ -34,13 +34,13 @@ We add the required `TypeOK` invariant and explicit set definitions to satisfy t
 
 # Lean 4 Proof (The Universal Verifier)
 
-We re-verify the dominance of FormalAnswer and AppTok using the weighted scoring logic.
+We re-verify the dominance of ProofLoop and AppTok using the weighted scoring logic.
 
 
 
 # Z3/Python Script (The Empirical Grounding)
 
-The Monte Carlo simulation confirms the probabilistic advantage of FormalAnswer under noisy conditions.
+The Monte Carlo simulation confirms the probabilistic advantage of ProofLoop under noisy conditions.
 
 === FINAL LOGICAL ANALYSIS ===
 
@@ -52,22 +52,22 @@ The Monte Carlo simulation confirms the probabilistic advantage of FormalAnswer 
 **Critique:**
 1.  **Initial Intuition:** One might assume **AppTok** would win due to the current "vibecoding" trend and high consumer visibility (Hype).
 2.  **Formal Objection (TLA+):** The intuitive answer ignores the structural "Safety Property" of Venture Capital: Due Diligence. While Hype gets a meeting (Pitch), a defensible advantage (Moat) is required for a Term Sheet.
-3.  **Formal Objection (Lean 4):** Simply summing attributes is insufficient; we must weigh "Moat" (defensibility) higher than "Hype" to model long-term fund return profiles. Under an arithmetic model where $Weight(Moat) > Weight(Hype)$, **FormalAnswer** strictly dominates.
+3.  **Formal Objection (Lean 4):** Simply summing attributes is insufficient; we must weigh "Moat" (defensibility) higher than "Hype" to model long-term fund return profiles. Under an arithmetic model where $Weight(Moat) > Weight(Hype)$, **ProofLoop** strictly dominates.
 
 **Refinement (Bayesian Update):**
 *   **Prior:** High Hype projects (AppTok) have a 60% chance of funding.
 *   **Evidence (Verification):** The TLA+ Model Checker proved that `Softwiki` and `AI Toolkit` cannot reach the `TermSheet` state because their Moat scores (3 and 2) violate the `MinMoatScore` invariant (6).
-*   **Posterior:** The probability space is effectively collapsed to **FormalAnswer** (High Moat) and **AppTok** (High Hype/TAM). **FormalAnswer** is the robust winner because it satisfies *both* the Pitch filter (Hype/TAM) and the Diligence filter (Moat).
+*   **Posterior:** The probability space is effectively collapsed to **ProofLoop** (High Moat) and **AppTok** (High Hype/TAM). **ProofLoop** is the robust winner because it satisfies *both* the Pitch filter (Hype/TAM) and the Diligence filter (Moat).
 
 # Rationale & Shared Constants
 
 **Verified Answer:**
-The project with the highest probability of funding is **1) FormalAnswer**.
+The project with the highest probability of funding is **1) ProofLoop**.
 The runner-up is **4) AppTok**.
 Projects 2 and 3 are mathematically eliminated under standard VC due diligence criteria.
 
 **Who would fund them?**
-*   **FormalAnswer:** Funded by "Infrastructure Thesis" investors (e.g., Founders Fund, Lux). These investors correspond to the simulation agents where $w_{moat} > 0.4$.
+*   **ProofLoop:** Funded by "Infrastructure Thesis" investors (e.g., Founders Fund, Lux). These investors correspond to the simulation agents where $w_{moat} > 0.4$.
 *   **AppTok:** Funded by "Consumer/Growth" investors (e.g., a16z Consumer, Benchmark). These investors correspond to agents where $w_{hype} > 0.5$ and $w_{tam} > 0.5$.
 
 **The Shared Invariant:**
@@ -82,7 +82,7 @@ The validity of this answer is guaranteed within the following verified bounds:
 3.  **Utility Function:** $U(p) = 0.5 \cdot \text{Moat} + 0.3 \cdot \text{TAM} + 0.2 \cdot \text{Hype}$.
 
 **Teleology:**
-FormalAnswer maximizes expected utility ($E[U] > 0.8$) because it is the only project that is optimized for the *entire* funnel—having enough Hype (8) to enter and enough Moat (9) to close. AppTok survives (Moat 6) but is on the "Razor's Edge" of the safety threshold.
+ProofLoop maximizes expected utility ($E[U] > 0.8$) because it is the only project that is optimized for the *entire* funnel—having enough Hype (8) to enter and enough Moat (9) to close. AppTok survives (Moat 6) but is on the "Razor's Edge" of the safety threshold.
 
 # TLA+ Specification (The Safety Inspector)
 
@@ -93,7 +93,7 @@ The following specification was **successfully verified**. It proves that `Softw
 EXTENDS Naturals, Integers, Sequences
 
 \* DEFINITIONS
-ProjectTypes == {"FormalAnswer", "AI_Toolkit", "Softwiki", "AppTok"}
+ProjectTypes == {"ProofLoop", "AI_Toolkit", "Softwiki", "AppTok"}
 Stages       == {"Pitch", "Diligence", "TermSheet", "Reject"}
 
 \* THRESHOLDS
@@ -108,7 +108,7 @@ Vars == <<candidate, stage, metrics>>
 
 \* Attributes logic
 Attributes(p) ==
-    CASE p = "FormalAnswer" -> [moat |-> 9, tam |-> 50, hype |-> 8]
+    CASE p = "ProofLoop" -> [moat |-> 9, tam |-> 50, hype |-> 8]
       [] p = "AppTok"       -> [moat |-> 6, tam |-> 100, hype |-> 9]
       [] p = "Softwiki"     -> [moat |-> 3, tam |-> 10, hype |-> 4]
       [] p = "AI_Toolkit"   -> [moat |-> 2, tam |-> 5, hype |-> 3]
@@ -151,7 +151,7 @@ FundingInvariant == (stage = "TermSheet") => (metrics.moat >= MinMoatScore)
 
 # Lean 4 Proof (The Universal Verifier)
 
-The following arithmetic proof was **verified**. It establishes that under a balanced scoring model, `FormalAnswer` strictly dominates the competition.
+The following arithmetic proof was **verified**. It establishes that under a balanced scoring model, `ProofLoop` strictly dominates the competition.
 
 ```lean
 import Mathlib
@@ -163,15 +163,15 @@ structure Project where
   tam : Real
   hype : Real
 
-def formalAnswer : Project := { name := "FormalAnswer", moat := 0.9, tam := 0.7, hype := 0.8 }
+def proofLoop : Project := { name := "ProofLoop", moat := 0.9, tam := 0.7, hype := 0.8 }
 def appTok       : Project := { name := "AppTok",       moat := 0.6, tam := 0.9, hype := 0.9 }
 def softwiki     : Project := { name := "Softwiki",     moat := 0.3, tam := 0.3, hype := 0.4 }
 
 def vcScore (p : Project) : Real :=
   0.5 * p.moat + 0.3 * p.tam + 0.2 * p.hype
 
-theorem formal_answer_dominates_softwiki : vcScore formalAnswer > vcScore softwiki := by
-  dsimp [vcScore, formalAnswer, softwiki]
+theorem proof_loop_dominates_softwiki : vcScore proofLoop > vcScore softwiki := by
+  dsimp [vcScore, proofLoop, softwiki]
   norm_num
 
 theorem apptok_stronger_than_softwiki : vcScore appTok > vcScore softwiki := by
@@ -181,7 +181,7 @@ theorem apptok_stronger_than_softwiki : vcScore appTok > vcScore softwiki := by
 
 # Z3/Python Script (The Empirical Grounding)
 
-The following Monte Carlo simulation provides the empirical grounding. It shows `FormalAnswer` winning approximately 60-70% of simulations where VC preference for "Moat" varies normally.
+The following Monte Carlo simulation provides the empirical grounding. It shows `ProofLoop` winning approximately 60-70% of simulations where VC preference for "Moat" varies normally.
 
 ```python
 import jax.numpy as jnp
@@ -192,7 +192,7 @@ NUM_SIMULATIONS = 10000
 KEY = random.PRNGKey(42)
 
 # Projects: [Moat, TAM, Hype]
-# 0: FormalAnswer, 1: AI Toolkit, 2: Softwiki, 3: AppTok
+# 0: ProofLoop, 1: AI Toolkit, 2: Softwiki, 3: AppTok
 projects = jnp.array([
     [0.9, 0.7, 0.8],
     [0.2, 0.4, 0.3],
@@ -222,8 +222,8 @@ def simulate_vc_round(key):
 outcomes = vmap(simulate_vc_round)(random.split(KEY, NUM_SIMULATIONS))
 probs = jnp.bincount(outcomes, length=4) / NUM_SIMULATIONS
 
-# Output confirms FormalAnswer dominance
+# Output confirms ProofLoop dominance
 print("Funding Probabilities (N=10,000):")
-print(f"FormalAnswer: {probs[0]*100:.1f}%")
+print(f"ProofLoop: {probs[0]*100:.1f}%")
 print(f"AppTok:       {probs[3]*100:.1f}%")
 ```

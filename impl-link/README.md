@@ -1,6 +1,6 @@
 # Linking formal proofs to implementations (HOWTO)
 
-Use this **FormalAnswer-style** loop to keep agent-written code honest:
+Use this **ProofLoop-style** loop to keep agent-written code honest:
 
 1) A **formal oracle** (TLA+ and optionally Lean) computes *expected facts* for a deterministic fixture.
 2) The **implementation** computes the same facts (usually via a `--json` mode).
@@ -80,9 +80,9 @@ Lean usually won’t execute the JS implementation, but it prevents silent drift
 
 ## 5) Harness test (Jest)
 
-Use `formalanswer/impl-link/index.ts` helpers to:
+Use `proofloop/impl-link/index.ts` helpers to:
 
-1) locate the FormalAnswer toolchain (the `work/` folder)
+1) locate the ProofLoop toolchain (the `work/` folder)
 2) run TLC
 3) extract expected facts from TLC stdout
 4) create a temp fixture tree

@@ -1,6 +1,6 @@
 # Verified Refinement: Guidelines for Implementation
 
-These guidelines outline how to use FormalAnswer to move from probabilistic coding to verified refinement, ensuring that implementation artifacts are direct shadows of proven logic.
+These guidelines outline how to use ProofLoop to move from probabilistic coding to verified refinement, ensuring that implementation artifacts are direct shadows of proven logic.
 
 ## 1. Unified Invariant Anchoring
 Every system-critical constant (buffer sizes, scale factors, protocol versions) must be defined in a formal specification first.

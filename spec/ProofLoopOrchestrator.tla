@@ -1,4 +1,4 @@
------------------------ MODULE FormalAnswerLoop -----------------------
+----------------------- MODULE ProofLoopOrchestrator -----------------------
 EXTENDS Naturals, TLC, FiniteSets
 
 CONSTANTS MaxIterations

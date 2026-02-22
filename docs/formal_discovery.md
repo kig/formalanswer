@@ -1,4 +1,4 @@
-# FormalAnswer: Proof Discovery & Context Injection
+# ProofLoop: Proof Discovery & Context Injection
 
 This document details the **Prompt Engineering** and **Runtime Mechanics** required to let the LLM discover and reuse formal proofs from the library.
 
@@ -54,7 +54,7 @@ Once modules are selected, we extract their **Public Interface** (ignoring priva
 
 **Constructed Prompt for Proposer:**
 ```text
-SYSTEM: ... (Standard FormalAnswer Prompt) ...
+SYSTEM: ... (Standard ProofLoop Prompt) ...
 
 CONTEXT - AVAILABLE FORMAL TOOLS:
 --------------------------------------------------

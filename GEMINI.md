@@ -1,9 +1,9 @@
-# FormalAnswer
+# ProofLoop
 
 ## 1. Mission & Philosophy
-**FormalAnswer** operates as a "System 2" governor for Large Language Models. It operationalizes the **"Neural-Algebraic Mirror"** concept:
+**ProofLoop** operates as a "System 2" governor for Large Language Models. It operationalizes the **"Neural-Algebraic Mirror"** concept:
 - **System 1 (LLM):** Generates high-entropy, intuitive "candidate solutions" (The Proposer).
-- **System 2 (FormalAnswer Kernel):** Mechanically verifies these candidates against strict logical and temporal constraints (The Auditor).
+- **System 2 (ProofLoop Kernel):** Mechanically verifies these candidates against strict logical and temporal constraints (The Auditor).
 
 **Goal:** Transform the LLM from a probabilistic token generator into a verifiable reasoning engine. An output is only accepted if it compiles and passes all formal checks.
 

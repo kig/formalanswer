@@ -2,7 +2,7 @@ from mcp.server.fastmcp import FastMCP
 from src.api import api, VerificationRequest
 
 # Initialize FastMCP Server
-mcp = FastMCP("FormalAnswer")
+mcp = FastMCP("ProofLoop")
 
 @mcp.tool()
 def formal_verify(query: str, model: str = "gemini-2.5-flash") -> str:

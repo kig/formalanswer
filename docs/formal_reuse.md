@@ -1,4 +1,4 @@
-# FormalAnswer: Modular Reasoning & Subroutine Reuse
+# ProofLoop: Modular Reasoning & Subroutine Reuse
 
 This document proposes a framework for creating and utilizing a library of "Trusted Formal Subroutines" to accelerate complex predictions.
 
@@ -37,7 +37,7 @@ Instead of catting files, we parse them to extract public interfaces.
 Structure the `library/` to distinguish between "Queries" (one-off) and "Modules" (reusable).
 
 ```text
-formal_answer/
+proof_loop/
 ├── library/ (User Queries)
 └── modules/ (Verified Components)
     ├── math/

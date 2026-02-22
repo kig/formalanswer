@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from src.api import FormalAnswerAPI, VerificationRequest
+from src.api import ProofLoopAPI, VerificationRequest
 
 class TestFormalAPI(unittest.TestCase):
     @patch("src.api.FormalReasoningLoop")
@@ -10,7 +10,7 @@ class TestFormalAPI(unittest.TestCase):
         mock_instance.run.return_value = (True, "The system is safe.")
         
         # Test
-        api = FormalAnswerAPI()
+        api = ProofLoopAPI()
         req = VerificationRequest(task="Verify lock", model="test-model")
         res = api.verify(req)
         

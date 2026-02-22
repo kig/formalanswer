@@ -41,7 +41,7 @@ class Reporter:
         """
         fas = Reporter.calculate_assurance_score(results)
         
-        report = f"# FormalAnswer Logic Report\\n"
+        report = f"# ProofLoop Logic Report\\n"
         report += f"**Task:** {task}\\n"
         report += f"**Assurance Tier:** {tier.upper()}\\n"
         report += f"**Formal Assurance Score (FAS):** {fas}/100\\n\\n"
@@ -61,6 +61,6 @@ class Reporter:
                 report += f"- Block {idx+1}: {status} ({res.message})\\n"
         
         report += f"\\n---\\n"
-        report += f"*This report was autonomously generated and verified by the FormalAnswer System 2 Governor.*\\n"
+        report += f"*This report was autonomously generated and verified by the ProofLoop System 2 Governor.*\\n"
         
         return report

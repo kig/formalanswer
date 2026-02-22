@@ -1,6 +1,6 @@
-# FormalAnswer: Extensions for Advanced Modeling & Prediction
+# ProofLoop: Extensions for Advanced Modeling & Prediction
 
-This document outlines specialized formal modalities to be integrated into the FormalAnswer loop to handle specific classes of complex reasoning and forecasting.
+This document outlines specialized formal modalities to be integrated into the ProofLoop loop to handle specific classes of complex reasoning and forecasting.
 
 ## 1. Probabilistic Model Checking (PRISM/Storm)
 *   **Purpose:** To verify systems with inherent stochastic behavior (e.g., "What is the probability that the protocol succeeds within 10 seconds?").

@@ -1,6 +1,6 @@
 # Implementation Plan: Formal Extensions, Skills, and Discovery
 
-This document tracks the implementation of the advanced FormalAnswer capabilities.
+This document tracks the implementation of the advanced ProofLoop capabilities.
 
 ## Phase 1: Proof Discovery & Reuse (The "Librarian") [COMPLETE]
 **Goal:** Enable the LLM to discover and use existing formal modules (`modules/`).

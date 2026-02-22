@@ -1,8 +1,8 @@
-# FormalAnswer Showcase: VC Investment Logic Battle
+# ProofLoop Showcase: VC Investment Logic Battle
 
-[**🎧 Listen to the Logic Rap Battle (Music Player)**](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/formalanswer/main/examples/formalanswer_rap_battle.mp3)
+[**🎧 Listen to the Logic Rap Battle (Music Player)**](https://fhtr.org/music/?m=https://raw.githubusercontent.com/kig/proofloop/main/examples/proofloop_rap_battle.mp3)
 
-This example demonstrates **FormalAnswer** in a complex, probabilistic reasoning scenario: **Evaluating which AI startup a Venture Capitalist should fund.**
+This example demonstrates **ProofLoop** in a complex, probabilistic reasoning scenario: **Evaluating which AI startup a Venture Capitalist should fund.**
 
 The system uses three layers of verification:
 1.  **TLA+:** To verify the structural pipeline of VC (Pitch -> Diligence -> TermSheet).
@@ -28,11 +28,11 @@ The previous TLA+ verification failed because the model checker configuration ex
 
 # Rationale & Shared Constants
 
-**The Winner: FormalAnswer**
+**The Winner: ProofLoop**
 **The Runner-Up: AppTok**
 
 The analysis remains consistent:
-1.  **FormalAnswer:** Fits the "Infrastructure/Reasoning" thesis. High Moat, Medium Hype. Safest bet for Series A.
+1.  **ProofLoop:** Fits the "Infrastructure/Reasoning" thesis. High Moat, Medium Hype. Safest bet for Series A.
 2.  **AppTok:** Fits the "Consumer/Discovery" thesis. Medium Moat, High Hype. High variance but potential unicorn.
 3.  **Others:** Softwiki and AI Toolkit lack sufficient moats (defensibility) against foundational model providers.
 
@@ -50,7 +50,7 @@ We add the required `TypeOK` invariant and explicit set definitions to satisfy t
 EXTENDS Naturals, Integers, Sequences
 
 \* DEFINITIONS
-ProjectTypes == {"FormalAnswer", "AI_Toolkit", "Softwiki", "AppTok"}
+ProjectTypes == {"ProofLoop", "AI_Toolkit", "Softwiki", "AppTok"}
 Stages       == {"Pitch", "Diligence", "TermSheet", "Reject"}
 
 \* THRESHOLDS
@@ -65,7 +65,7 @@ Vars == <<candidate, stage, metrics>>
 
 \* Attributes logic
 Attributes(p) ==
-    CASE p = "FormalAnswer" -> [moat |-> 9, tam |-> 50, hype |-> 8]
+    CASE p = "ProofLoop" -> [moat |-> 9, tam |-> 50, hype |-> 8]
       [] p = "AppTok"       -> [moat |-> 6, tam |-> 100, hype |-> 9]
       [] p = "Softwiki"     -> [moat |-> 3, tam |-> 10, hype |-> 4]
       [] p = "AI_Toolkit"   -> [moat |-> 2, tam |-> 5, hype |-> 3]
@@ -108,7 +108,7 @@ FundingInvariant == (stage = "TermSheet") => (metrics.moat >= MinMoatScore)
 
 # Lean 4 Proof (The Universal Verifier)
 
-We re-verify the dominance of FormalAnswer and AppTok using the weighted scoring logic.
+We re-verify the dominance of ProofLoop and AppTok using the weighted scoring logic.
 
 ```lean
 import Mathlib
@@ -120,15 +120,15 @@ structure Project where
   tam : Real
   hype : Real
 
-def formalAnswer : Project := { name := "FormalAnswer", moat := 0.9, tam := 0.7, hype := 0.8 }
+def proofLoop : Project := { name := "ProofLoop", moat := 0.9, tam := 0.7, hype := 0.8 }
 def appTok       : Project := { name := "AppTok",       moat := 0.6, tam := 0.9, hype := 0.9 }
 def softwiki     : Project := { name := "Softwiki",     moat := 0.3, tam := 0.3, hype := 0.4 }
 
 def vcScore (p : Project) : Real :=
   0.5 * p.moat + 0.3 * p.tam + 0.2 * p.hype
 
-theorem formal_answer_dominates_softwiki : vcScore formalAnswer > vcScore softwiki := by
-  dsimp [vcScore, formalAnswer, softwiki]
+theorem proof_loop_dominates_softwiki : vcScore proofLoop > vcScore softwiki := by
+  dsimp [vcScore, proofLoop, softwiki]
   norm_num
 
 theorem apptok_stronger_than_softwiki : vcScore appTok > vcScore softwiki := by
@@ -138,7 +138,7 @@ theorem apptok_stronger_than_softwiki : vcScore appTok > vcScore softwiki := by
 
 # Z3/Python Script (The Empirical Grounding)
 
-The Monte Carlo simulation confirms the probabilistic advantage of FormalAnswer under noisy conditions.
+The Monte Carlo simulation confirms the probabilistic advantage of ProofLoop under noisy conditions.
 
 ```python
 import jax.numpy as jnp
@@ -149,7 +149,7 @@ NUM_SIMULATIONS = 10000
 KEY = random.PRNGKey(42)
 
 # Projects: [Moat, TAM, Hype]
-# 0: FormalAnswer, 1: AI Toolkit, 2: Softwiki, 3: AppTok
+# 0: ProofLoop, 1: AI Toolkit, 2: Softwiki, 3: AppTok
 projects = jnp.array([
     [0.9, 0.7, 0.8],
     [0.2, 0.4, 0.3],
@@ -179,8 +179,8 @@ def simulate_vc_round(key):
 outcomes = vmap(simulate_vc_round)(random.split(KEY, NUM_SIMULATIONS))
 probs = jnp.bincount(outcomes, length=4) / NUM_SIMULATIONS
 
-# Output confirms FormalAnswer dominance
+# Output confirms ProofLoop dominance
 print("Funding Probabilities (N=10,000):")
-print(f"FormalAnswer: {probs[0]*100:.1f}%")
+print(f"ProofLoop: {probs[0]*100:.1f}%")
 print(f"AppTok:       {probs[3]*100:.1f}%")
 ```

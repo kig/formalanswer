@@ -30,9 +30,9 @@ function getLeanBin(formalWorkDir: string) {
   return candidates.find((p) => fs.existsSync(p)) || 'lean';
 }
 
-/** Locate the FormalAnswer toolchain (the `work/` folder inside the FormalAnswer repo). */
-export function findFormalWork(formalanswerRoot: string): FormalWork | null {
-  const formalWorkDir = path.join(formalanswerRoot, 'work');
+/** Locate the ProofLoop toolchain (the `work/` folder inside the ProofLoop repo). */
+export function findFormalWork(proofloopRoot: string): FormalWork | null {
+  const formalWorkDir = path.join(proofloopRoot, 'work');
   const tla2toolsJar = path.join(formalWorkDir, 'tla2tools.jar');
   if (!fs.existsSync(tla2toolsJar)) return null;
   return { 

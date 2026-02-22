@@ -1,6 +1,6 @@
 # Switch Logic: Discrete vs. Probabilistic Reasoning
 
-The `FormalAnswer` system relies on a "Neural-Algebraic Mirror" where the LLM (Proposer) must decide the appropriate formal modality. This logic is encoded in the `SYSTEM_PROMPT`.
+The `ProofLoop` system relies on a "Neural-Algebraic Mirror" where the LLM (Proposer) must decide the appropriate formal modality. This logic is encoded in the `SYSTEM_PROMPT`.
 
 ## 1. Formal Decision Logic
 

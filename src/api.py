@@ -11,7 +11,7 @@ class VerificationResponse(BaseModel):
     answer: Optional[str]
     artifacts: Dict[str, Any] = {}
 
-class FormalAnswerAPI:
+class ProofLoopAPI:
     def __init__(self):
         # We initialize the loop lazily or per request? 
         # The loop has state (library manager). It's better to instantiate per request 
@@ -41,4 +41,4 @@ class FormalAnswerAPI:
         )
 
 # Singleton instance
-api = FormalAnswerAPI()
+api = ProofLoopAPI()

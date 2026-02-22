@@ -40,5 +40,33 @@
     "input_tokens": 0,
     "output_tokens": 0,
     "estimated_cost_usd": 0.0
+  },
+  {
+    "timestamp": "2026-02-22T16:46:16.204172",
+    "task": "Test Task",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_cost_usd": 0.0
+  },
+  {
+    "timestamp": "2026-02-22T16:46:16.714918",
+    "task": "Test Rap Task",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_cost_usd": 0.0
+  },
+  {
+    "timestamp": "2026-02-22T17:08:20.615833",
+    "task": "Test Task",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_cost_usd": 0.0
+  },
+  {
+    "timestamp": "2026-02-22T17:08:21.571314",
+    "task": "Test Rap Task",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "estimated_cost_usd": 0.0
   }
 ]

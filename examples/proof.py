@@ -6,7 +6,7 @@ NUM_SIMULATIONS = 10000
 KEY = random.PRNGKey(42)
 
 # Projects: [Moat, TAM, Hype]
-# 0: FormalAnswer, 1: AI Toolkit, 2: Softwiki, 3: AppTok
+# 0: ProofLoop, 1: AI Toolkit, 2: Softwiki, 3: AppTok
 projects = jnp.array([
     [0.9, 0.7, 0.8],
     [0.2, 0.4, 0.3],
@@ -37,7 +37,7 @@ outcomes = vmap(simulate_vc_round)(random.split(KEY, NUM_SIMULATIONS))
 probs = jnp.bincount(outcomes, length=4) / NUM_SIMULATIONS
 
 print("Funding Probabilities (N=10,000):")
-print(f"FormalAnswer: {probs[0]*100:.1f}%")
+print(f"ProofLoop: {probs[0]*100:.1f}%")
 print(f"AI Toolkit:   {probs[1]*100:.1f}%")
 print(f"Softwiki:     {probs[2]*100:.1f}%")
 print(f"AppTok:       {probs[3]*100:.1f}%")

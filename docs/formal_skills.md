@@ -1,4 +1,4 @@
-# FormalAnswer: API Integration & Formal Skills (MCP)
+# ProofLoop: API Integration & Formal Skills (MCP)
 
 This document proposes a "Formal Skill Adapter" architecture to safely integrate external API calls (e.g., Model Context Protocol - MCP) into the verified reasoning loop.
 

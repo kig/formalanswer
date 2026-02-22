@@ -13,10 +13,10 @@ The previous TLA+ model failed because it relied on external configuration files
 
 # Rationale & Shared Constants
 
-**The Winner: FormalAnswer**
+**The Winner: ProofLoop**
 **The Runner-Up: AppTok**
 
-We maintain the previous rationale. The VC market currently optimizes for **Deep Tech Moats** (FormalAnswer) and **Consumer Virality** (AppTok). Middle-of-the-road tooling (AI Toolkit, Softwiki) is squeezed out by platform commoditization.
+We maintain the previous rationale. The VC market currently optimizes for **Deep Tech Moats** (ProofLoop) and **Consumer Virality** (AppTok). Middle-of-the-road tooling (AI Toolkit, Softwiki) is squeezed out by platform commoditization.
 
 **Shared Constants:**
 $$ MinMoatScore = 6 $$
@@ -36,7 +36,7 @@ This specification is now fully self-contained. It models the filtering process 
 EXTENDS Naturals, Integers, Sequences
 
 \* DEFINITIONS (Self-contained, no configuration file needed)
-ProjectTypes == {"FormalAnswer", "AI_Toolkit", "Softwiki", "AppTok"}
+ProjectTypes == {"ProofLoop", "AI_Toolkit", "Softwiki", "AppTok"}
 MinMoatScore == 6
 MinTAM       == 20   \* Billions
 HypeThreshold == 8
@@ -50,7 +50,7 @@ Vars == <<candidate, stage, metrics>>
 
 \* Map projects to their attributes
 Attributes(p) ==
-    CASE p = "FormalAnswer" -> [moat |-> 9, tam |-> 50, hype |-> 8]
+    CASE p = "ProofLoop" -> [moat |-> 9, tam |-> 50, hype |-> 8]
       [] p = "AppTok"       -> [moat |-> 6, tam |-> 100, hype |-> 9]
       [] p = "Softwiki"     -> [moat |-> 3, tam |-> 10, hype |-> 4]
       [] p = "AI_Toolkit"   -> [moat |-> 2, tam |-> 5, hype |-> 3]
@@ -105,15 +105,15 @@ structure Project where
   tam : Real
   hype : Real
 
-def formalAnswer : Project := { name := "FormalAnswer", moat := 0.9, tam := 0.7, hype := 0.8 }
+def proofLoop : Project := { name := "ProofLoop", moat := 0.9, tam := 0.7, hype := 0.8 }
 def appTok       : Project := { name := "AppTok",       moat := 0.6, tam := 0.9, hype := 0.9 }
 def softwiki     : Project := { name := "Softwiki",     moat := 0.3, tam := 0.3, hype := 0.4 }
 
 def vcScore (p : Project) : Real :=
   0.5 * p.moat + 0.3 * p.tam + 0.2 * p.hype
 
-theorem formal_answer_dominates_softwiki : vcScore formalAnswer > vcScore softwiki := by
-  dsimp [vcScore, formalAnswer, softwiki]
+theorem proof_loop_dominates_softwiki : vcScore proofLoop > vcScore softwiki := by
+  dsimp [vcScore, proofLoop, softwiki]
   norm_num
 
 theorem apptok_stronger_than_softwiki : vcScore appTok > vcScore softwiki := by
@@ -123,7 +123,7 @@ theorem apptok_stronger_than_softwiki : vcScore appTok > vcScore softwiki := by
 
 # Z3/Python Script (The Empirical Grounding)
 
-(Preserved from previous success) Monte Carlo simulation confirms `FormalAnswer` as the statistical winner under noise.
+(Preserved from previous success) Monte Carlo simulation confirms `ProofLoop` as the statistical winner under noise.
 
 ```python
 import jax.numpy as jnp
@@ -134,7 +134,7 @@ NUM_SIMULATIONS = 10000
 KEY = random.PRNGKey(42)
 
 # Projects: [Moat, TAM, Hype]
-# 0: FormalAnswer, 1: AI Toolkit, 2: Softwiki, 3: AppTok
+# 0: ProofLoop, 1: AI Toolkit, 2: Softwiki, 3: AppTok
 projects = jnp.array([
     [0.9, 0.7, 0.8],
     [0.2, 0.4, 0.3],
@@ -163,6 +163,6 @@ def simulate_vc_round(key):
 outcomes = vmap(simulate_vc_round)(random.split(KEY, NUM_SIMULATIONS))
 probs = jnp.bincount(outcomes, length=4) / NUM_SIMULATIONS
 
-print(f"FormalAnswer Win Rate: {probs[0]:.2f}")
+print(f"ProofLoop Win Rate: {probs[0]:.2f}")
 print(f"AppTok Win Rate:       {probs[3]:.2f}")
 ```

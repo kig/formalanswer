@@ -1,10 +1,10 @@
-# FormalAnswer Roadmap
+# ProofLoop Roadmap
 
 ## Completed
 - [x] **Priority 1-13** (Reliability, Knowledge Reuse, Consistency, Tactics, Auto-Repair, Incremental Repair, Structural Alignment, Trace Explanation, Documentation, Parallel Verification, Rich CLI, Refactoring, Formal Specification)
 
 ## Priority 14: Business Model & Sustainability
-**Goal:** Transition FormalAnswer from a research tool to a production-ready reasoning engine with cost awareness and professional reporting.
+**Goal:** Transition ProofLoop from a research tool to a production-ready reasoning engine with cost awareness and professional reporting.
 
 - [x] **Usage Metering & Cost Tracking**
     - [x] Update `controller.py` to track tokens and estimated costs per reasoning task.
