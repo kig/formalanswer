@@ -11,6 +11,7 @@ venv/
 /library/
 states/
 local_index.json
+usage_meter.json
 
 # OS
 .DS_Store
