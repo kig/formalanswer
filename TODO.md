@@ -32,6 +32,13 @@
 - [ ] **Sandboxed Workers**: Create a Dockerfile for isolated verification (Lean/TLA+/Python).
 - [ ] **React Frontend**: Develop a dashboard for visualizing logic battles and verification results.
 
+## Priority 17: Advanced Reasoning Modalities
+**Goal:** Enhance the Proposer's logical depth via specialized prompting strategies.
+
+- [x] **Core Strategy Injection**: Integrated "Lifting/Landing", "Top-Down Refinement", and "Two-Sided Proofs" into `SYSTEM_PROMPT`.
+- [ ] **Strategy-Specific Mode**: Add `--strategy` flag to switch between different meta-reasoning patterns.
+- [ ] **Adaptive Precision Logic**: Dynamically adjust `max_iterations` or verifier timeouts based on the importance of sub-modules.
+
 ## Future Work
 - [x] **Persistent Lean Server**: Implement a persistent Lean process to reduce verification latency.
 - [ ] **Web UI**: Create a FastAPI/React frontend for visual interaction.
