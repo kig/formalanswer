@@ -39,6 +39,14 @@
 - [ ] **Strategy-Specific Mode**: Add `--strategy` flag to switch between different meta-reasoning patterns.
 - [ ] **Adaptive Precision Logic**: Dynamically adjust `max_iterations` or verifier timeouts based on the importance of sub-modules.
 
+## Priority 18: Deep Reasoning Insights
+**Goal:** Transition from "syntax verification" to "system property verification".
+
+- [ ] **Adversarial Proof Battles**: Update `critique` prompts to force the Red Team to generate compilable TLA+/Lean counter-proofs.
+- [ ] **Conservative Abstraction Proofs**: Implement guidance for proving that an abstract model is a "Safe-Heavy" approximation of reality.
+- [ ] **Cross-Tool Anchoring**: Enable "Unified Invariants" where Z3 results (constants) are injected into TLA+ specifications.
+- [ ] **Formal Resource Optimization**: Use Z3 to prove the necessity of Adaptive Precision under finite token budgets.
+
 ## Future Work
 - [x] **Persistent Lean Server**: Implement a persistent Lean process to reduce verification latency.
 - [ ] **Web UI**: Create a FastAPI/React frontend for visual interaction.

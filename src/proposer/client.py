@@ -292,18 +292,21 @@ class Proposer:
              return 0.5, "Error parsing independent judge responses."
 
     def critique(self, proof_text):
+        """
+        Adversarial Review: Stateless call to find flaws.
+        MANDATES a formal counter-proof.
+        """
         prompt = (
-            "You are a 'Red Team' adversary. Your goal is to provide a STRICT BUT FAIR critique.\n"
-            "Do NOT invent flaws if the argument is solid. However, you must rigorously check for:\n"
-            "1. Hidden assumptions or tautologies.\n"
-            "2. False premises in the 'Rationale'.\n"
-            "3. Gap between the formal model and reality (the 'Sim-to-Real' gap).\n"
-            "4. **No Hallucinated Constraints:** Do not invent constraints (e.g. budget, room size, deadline) that are not in the prompt. Stick to the provided information.\n"
-            "You MAY provide a formal counter-proof (TLA+, Lean, Python) if it helps demonstrate the flaw.\n\n"
+            "You are a 'Red Team' adversary and Formal Methods Expert. Your goal is to provide a STERN mechanical critique.\n"
+            "If the logic is solid, admit it. But if there is any gap, you MUST provide a FORMAL COUNTER-PROOF.\n"
+            "1. **Mechanical Failure:** Provide a TLA+ snippet or Lean 4 block that breaks the proponent's invariants.\n"
+            "2. **Vacuity Check:** Does the proof pass only because the preconditions are never met? (e.g. proving a property of an empty set).\n"
+            "3. **Sim-to-Real Gap:** Demonstrate where the abstract model ignores a critical real-world failure mode.\n"
+            "4. **No Hallucinated Constraints:** Do not invent constraints not in the prompt.\n\n"
             f"ARGUMENT TO ATTACK:\n{proof_text}\n\n"
             "OUTPUT FORMAT:\n"
-            "OBJECTION: [One clear, devastating objection].\n"
-            "COUNTER-PROOF (Optional): [Code block if needed].\n"
+            "OBJECTION: [One clear objection].\n"
+            "COUNTER-PROOF: [MANDATORY: Code block (TLA+ or Lean) demonstrating the flaw].\n"
             "SEVERITY: [High/Medium/Low]."
         )
         return self._call_stateless(prompt).content
